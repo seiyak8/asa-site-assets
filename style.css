@@ -599,7 +599,7 @@ img { max-width: 100%; display: block; }
 }
 .fee-list li.best strong { color: var(--teal-dark); }
 .fee-list li.best::before {
-  content: "人気No.1";
+  content: "äººæ°No.1";
   position: absolute;
   top: -10px;
   left: 14px;
@@ -1020,6 +1020,8 @@ img { max-width: 100%; display: block; }
   .flow-steps { flex-direction: column; }
   .flow-arrow { transform: rotate(90deg); }
   .fee-grid { grid-template-columns: 1fr; }
+  .pain-grid { grid-template-columns: 1fr; }
+  .usp-grid { grid-template-columns: 1fr; }
 }
 
 @media (max-width: 480px) {
