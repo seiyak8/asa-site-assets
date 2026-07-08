@@ -162,7 +162,7 @@ img { max-width: 100%; display: block; }
 
 .hero-slide.active { opacity: 1; }
 
-.hero-slide:nth-child(1) { background-image: url('../assets/images/hero-1.png'); }
+.hero-slide:nth-child(1) { background-image: url('https://cdn.jsdelivr.net/gh/seiyak8/asa-site-assets@693c02286d0b67374c3c73e297ad96afb9e8b653/assets/images/hero-1.jpg'); }
 .hero-slide:nth-child(2) { background-image: linear-gradient(135deg, var(--ink) 0%, var(--teal-dark) 60%, var(--teal) 100%); }
 .hero-slide:nth-child(3) { background-image: linear-gradient(135deg, #0a171d, var(--teal-dark) 55%, var(--teal-light)); }
 
@@ -407,10 +407,10 @@ img { max-width: 100%; display: block; }
 .class-1 { background-image: linear-gradient(135deg, var(--teal-light), var(--teal-dark)); }
 .class-card:hover .class-1 { box-shadow: 0 22px 40px -16px rgba(184,114,42,.5); }
 .class-2 { background-image: linear-gradient(135deg, var(--teal), var(--teal-dark)); }
-.class-media.class-2 { background-image: url('../assets/images/enjoy-class-2.png'); }
+.class-media.class-2 { background-image: url('https://cdn.jsdelivr.net/gh/seiyak8/asa-site-assets@693c02286d0b67374c3c73e297ad96afb9e8b653/assets/images/enjoy-class-2.jpg'); }
 .class-card:hover .class-2 { box-shadow: 0 22px 40px -16px rgba(14,143,166,.5); }
-.class-detail-media.class-2 { background-image: url('../assets/images/enjoy-class-1.png'); }
-.class-3 { background-image: url('../assets/images/advance-class-1.jpg'); }
+.class-detail-media.class-2 { background-image: url('https://cdn.jsdelivr.net/gh/seiyak8/asa-site-assets@693c02286d0b67374c3c73e297ad96afb9e8b653/assets/images/enjoy-class-1.jpg'); }
+.class-3 { background-image: url('https://cdn.jsdelivr.net/gh/seiyak8/asa-site-assets@693c02286d0b67374c3c73e297ad96afb9e8b653/assets/images/advance-class-1.jpg'); }
 .class-card:hover .class-3 { box-shadow: 0 22px 40px -16px rgba(193,68,14,.5); }
 .class-4 { background-image: linear-gradient(135deg, var(--ink-soft), var(--ink)); }
 .class-card:hover .class-4 { box-shadow: 0 22px 40px -16px rgba(18,35,44,.55); }
