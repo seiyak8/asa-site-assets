@@ -229,6 +229,7 @@ img { max-width: 100%; display: block; }
   font-size: 11px; font-weight: 600; letter-spacing: .02em;
   backdrop-filter: blur(4px);
 }
+.social-icon { width: 18px; height: 18px; }
 
 .hero-controls {
   position: absolute;
@@ -257,6 +258,7 @@ img { max-width: 100%; display: block; }
   position: relative;
   overflow: hidden;
   background: linear-gradient(180deg, #ffffff 0%, #fbfcfe 100%);
+  scroll-margin-top: 90px;
 }
 .section.alt {
   background: linear-gradient(160deg, var(--gray-bg) 0%, #EAF6F8 55%, #F4EFFE 100%);
@@ -340,6 +342,9 @@ img { max-width: 100%; display: block; }
 .kp-1 { background-image: url('https://cdn.jsdelivr.net/gh/seiyak8/asa-site-assets@0c28525e908fa1d54478870c294f7d2e4bcda2a6/assets/images/personal.jpg'); }
 .kp-2 { background-image: url('https://cdn.jsdelivr.net/gh/seiyak8/asa-site-assets@0c28525e908fa1d54478870c294f7d2e4bcda2a6/assets/images/track8advance.jpg'); }
 .kp-3 { background-image: url('https://cdn.jsdelivr.net/gh/seiyak8/asa-site-assets@0c28525e908fa1d54478870c294f7d2e4bcda2a6/assets/images/physical2.jpg'); }
+#philosophy .kp-1 { background-image: url('https://cdn.jsdelivr.net/gh/seiyak8/asa-site-assets@31d1221afb72da81d1e5f6bb0e3f680fce6b22b3/assets/images/advance1.jpg'); }
+#philosophy .kp-2 { background-image: url('https://cdn.jsdelivr.net/gh/seiyak8/asa-site-assets@31d1221afb72da81d1e5f6bb0e3f680fce6b22b3/assets/images/track2.jpg'); }
+#philosophy .kp-3 { background-image: url('https://cdn.jsdelivr.net/gh/seiyak8/asa-site-assets@31d1221afb72da81d1e5f6bb0e3f680fce6b22b3/assets/images/personal1.jpg'); }
 
 .keypoint h4 { font-size: 18px; font-weight: 600; }
 
