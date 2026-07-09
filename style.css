@@ -105,6 +105,20 @@ img { max-width: 100%; display: block; }
 .main-nav a:hover { color: var(--teal-dark); }
 .main-nav a.active { color: var(--teal-dark); }
 
+.main-nav a.lang-toggle {
+  border: 1.5px solid var(--line);
+  border-radius: 20px;
+  padding: 6px 16px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--ink-soft);
+  transition: border-color .2s ease, color .2s ease;
+}
+.main-nav a.lang-toggle:hover {
+  border-color: var(--teal-dark);
+  color: var(--teal-dark);
+}
+
 .main-nav a.nav-cta {
   background: var(--grad-ink);
   color: #fff;
@@ -345,6 +359,9 @@ img { max-width: 100%; display: block; }
 #philosophy .kp-1 { background-image: url('https://cdn.jsdelivr.net/gh/seiyak8/asa-site-assets@31d1221afb72da81d1e5f6bb0e3f680fce6b22b3/assets/images/advance1.jpg'); }
 #philosophy .kp-2 { background-image: url('https://cdn.jsdelivr.net/gh/seiyak8/asa-site-assets@31d1221afb72da81d1e5f6bb0e3f680fce6b22b3/assets/images/track2.jpg'); }
 #philosophy .kp-3 { background-image: url('https://cdn.jsdelivr.net/gh/seiyak8/asa-site-assets@31d1221afb72da81d1e5f6bb0e3f680fce6b22b3/assets/images/personal1.jpg'); }
+#rhythm-strength .kp-1 { background-image: url('https://cdn.jsdelivr.net/gh/seiyak8/asa-site-assets@cc65754d3d7bbbfec9cb08c3d5ca47b7b63e1728/assets/gym1.png'); }
+#rhythm-strength .kp-2 { background-image: url('https://cdn.jsdelivr.net/gh/seiyak8/asa-site-assets@cc65754d3d7bbbfec9cb08c3d5ca47b7b63e1728/assets/HP-gym1.jpg'); }
+#rhythm-strength .kp-3 { background-image: url('https://cdn.jsdelivr.net/gh/seiyak8/asa-site-assets@cc65754d3d7bbbfec9cb08c3d5ca47b7b63e1728/assets/HP-gym3.jpg'); }
 
 .keypoint h4 { font-size: 18px; font-weight: 600; }
 
@@ -410,6 +427,7 @@ img { max-width: 100%; display: block; }
 .class-card:hover .class-media { transform: scale(1.035); }
 
 .class-1 { background-image: linear-gradient(135deg, var(--teal-light), var(--teal-dark)); }
+.class-detail-media.class-1 { background-image: url('https://cdn.jsdelivr.net/gh/seiyak8/asa-site-assets@cc65754d3d7bbbfec9cb08c3d5ca47b7b63e1728/assets/gym2.jpg'); }
 .class-card:hover .class-1 { box-shadow: 0 22px 40px -16px rgba(184,114,42,.5); }
 .class-2 { background-image: linear-gradient(135deg, var(--teal), var(--teal-dark)); }
 .class-media.class-2 { background-image: url('https://cdn.jsdelivr.net/gh/seiyak8/asa-site-assets@693c02286d0b67374c3c73e297ad96afb9e8b653/assets/images/enjoy-class-2.jpg'); }
