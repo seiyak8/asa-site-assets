@@ -49,6 +49,20 @@ if (slides.length && prevBtn && nextBtn && pauseBtn) {
   });
 }
 
+// Same-page anchor links (e.g. header/footer nav "#class", "#blog") rely on
+// native browser hash-jump, which does nothing in the STUDIO embed context
+// (see the scroll-polling note below) - so drive the scroll manually instead.
+document.querySelectorAll('a[href^="#"]').forEach(link => {
+  const href = link.getAttribute('href');
+  if (href.length < 2) return;
+  const target = document.querySelector(href);
+  if (!target) return;
+  link.addEventListener('click', e => {
+    e.preventDefault();
+    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  });
+});
+
 // FAQ accordion
 function toggleFaq(el) {
   const item = el.parentElement;
