@@ -163,8 +163,8 @@ img { max-width: 100%; display: block; }
 .hero-slide.active { opacity: 1; }
 
 .hero-slide:nth-child(1) { background-image: url('https://cdn.jsdelivr.net/gh/seiyak8/asa-site-assets@693c02286d0b67374c3c73e297ad96afb9e8b653/assets/images/hero-1.jpg'); }
-.hero-slide:nth-child(2) { background-image: linear-gradient(135deg, var(--ink) 0%, var(--teal-dark) 60%, var(--teal) 100%); }
-.hero-slide:nth-child(3) { background-image: linear-gradient(135deg, #0a171d, var(--teal-dark) 55%, var(--teal-light)); }
+.hero-slide:nth-child(2) { background-image: url('https://cdn.jsdelivr.net/gh/seiyak8/asa-site-assets@0c28525e908fa1d54478870c294f7d2e4bcda2a6/assets/images/track8advance.jpg'); }
+.hero-slide:nth-child(3) { background-image: url('https://cdn.jsdelivr.net/gh/seiyak8/asa-site-assets@0c28525e908fa1d54478870c294f7d2e4bcda2a6/assets/images/HP1.jpg'); }
 
 .hero-overlay {
   position: absolute;
@@ -337,9 +337,9 @@ img { max-width: 100%; display: block; }
   margin-bottom: 18px;
   background-size: cover;
 }
-.kp-1 { background-image: linear-gradient(135deg, var(--teal-light), var(--teal)); }
-.kp-2 { background-image: linear-gradient(135deg, var(--teal), var(--teal-dark)); }
-.kp-3 { background-image: linear-gradient(135deg, var(--teal-dark), var(--ink)); }
+.kp-1 { background-image: url('https://cdn.jsdelivr.net/gh/seiyak8/asa-site-assets@0c28525e908fa1d54478870c294f7d2e4bcda2a6/assets/images/personal.jpg'); }
+.kp-2 { background-image: url('https://cdn.jsdelivr.net/gh/seiyak8/asa-site-assets@0c28525e908fa1d54478870c294f7d2e4bcda2a6/assets/images/track8advance.jpg'); }
+.kp-3 { background-image: url('https://cdn.jsdelivr.net/gh/seiyak8/asa-site-assets@0c28525e908fa1d54478870c294f7d2e4bcda2a6/assets/images/physical2.jpg'); }
 
 .keypoint h4 { font-size: 18px; font-weight: 600; }
 
@@ -410,8 +410,9 @@ img { max-width: 100%; display: block; }
 .class-media.class-2 { background-image: url('https://cdn.jsdelivr.net/gh/seiyak8/asa-site-assets@693c02286d0b67374c3c73e297ad96afb9e8b653/assets/images/enjoy-class-2.jpg'); }
 .class-card:hover .class-2 { box-shadow: 0 22px 40px -16px rgba(14,143,166,.5); }
 .class-detail-media.class-2 { background-image: url('https://cdn.jsdelivr.net/gh/seiyak8/asa-site-assets@693c02286d0b67374c3c73e297ad96afb9e8b653/assets/images/enjoy-class-1.jpg'); }
-.class-3 { background-image: url('https://cdn.jsdelivr.net/gh/seiyak8/asa-site-assets@693c02286d0b67374c3c73e297ad96afb9e8b653/assets/images/advance-class-1.jpg'); }
+.class-media.class-3 { background-image: url('https://cdn.jsdelivr.net/gh/seiyak8/asa-site-assets@0c28525e908fa1d54478870c294f7d2e4bcda2a6/assets/images/track8advance.jpg'); }
 .class-card:hover .class-3 { box-shadow: 0 22px 40px -16px rgba(193,68,14,.5); }
+.class-detail-media.class-3 { background-image: url('https://cdn.jsdelivr.net/gh/seiyak8/asa-site-assets@693c02286d0b67374c3c73e297ad96afb9e8b653/assets/images/advance-class-1.jpg'); }
 .class-4 { background-image: linear-gradient(135deg, var(--ink-soft), var(--ink)); }
 .class-card:hover .class-4 { box-shadow: 0 22px 40px -16px rgba(18,35,44,.55); }
 .class-5 { background-image: linear-gradient(135deg, var(--orange), var(--ink)); }
@@ -599,7 +600,7 @@ img { max-width: 100%; display: block; }
 }
 .fee-list li.best strong { color: var(--teal-dark); }
 .fee-list li.best::before {
-  content: "äººæ°No.1";
+  content: "莠ｺ豌湧o.1";
   position: absolute;
   top: -10px;
   left: 14px;
