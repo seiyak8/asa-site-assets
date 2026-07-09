@@ -427,6 +427,7 @@ img { max-width: 100%; display: block; }
 .class-card:hover .class-media { transform: scale(1.035); }
 
 .class-1 { background-image: linear-gradient(135deg, var(--teal-light), var(--teal-dark)); }
+.class-media.class-1 { background-image: url('https://cdn.jsdelivr.net/gh/seiyak8/asa-site-assets@40d31ec5ba0bee564b27fdd61751ea4262b36295/assets/images/gym2.png'); }
 .class-detail-media.class-1 { background-image: url('https://cdn.jsdelivr.net/gh/seiyak8/asa-site-assets@cc65754d3d7bbbfec9cb08c3d5ca47b7b63e1728/assets/gym2.jpg'); }
 .class-card:hover .class-1 { box-shadow: 0 22px 40px -16px rgba(184,114,42,.5); }
 .class-2 { background-image: linear-gradient(135deg, var(--teal), var(--teal-dark)); }
@@ -439,6 +440,7 @@ img { max-width: 100%; display: block; }
 .class-4 { background-image: linear-gradient(135deg, var(--ink-soft), var(--ink)); }
 .class-card:hover .class-4 { box-shadow: 0 22px 40px -16px rgba(18,35,44,.55); }
 .class-5 { background-image: linear-gradient(135deg, var(--orange), var(--ink)); }
+.class-media.class-5 { background-image: url('https://cdn.jsdelivr.net/gh/seiyak8/asa-site-assets@40d31ec5ba0bee564b27fdd61751ea4262b36295/assets/images/track5-web.jpg'); }
 .class-card:hover .class-5 { box-shadow: 0 22px 40px -16px rgba(242,114,58,.5); }
 .class-6 { background-image: linear-gradient(135deg, var(--teal-dark), var(--ink-soft)); }
 .class-card:hover .class-6 { box-shadow: 0 22px 40px -16px rgba(14,143,166,.5); }
