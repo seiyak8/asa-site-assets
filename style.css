@@ -837,7 +837,7 @@ img { max-width: 100%; display: block; }
   background-image: linear-gradient(135deg, var(--teal), var(--ink-soft));
 }
 .director-role { color: var(--teal-light); font-size: 12.5px; font-weight: 700; letter-spacing: .08em; margin-bottom: 8px; text-transform: uppercase; }
-.director-strip h3 { font-size: 23px; font-weight: 700; margin-bottom: 12px; }
+.director-strip h3 { font-size: 23px; font-weight: 700; margin-bottom: 12px; color: #fff; }
 .director-strip p.director-bio { color: rgba(255,255,255,0.8); font-size: 14.5px; }
 .director-stats { display: flex; gap: 30px; margin-top: 24px; flex-wrap: wrap; }
 .director-stats div b { display: block; font-family: var(--font-head); font-size: 24px; font-weight: 700; color: #fff; }
