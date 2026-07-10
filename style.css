@@ -1319,3 +1319,82 @@ img { max-width: 100%; display: block; }
 @media (max-width: 700px) {
   .stats-grid { grid-template-columns: 1fr; gap: 36px; }
 }
+
+/* ============================================
+   Tablet (iPad) tuning - 601px to 1024px
+   Restores 2/3-column layouts so tablets don't
+   look as sparse as phones, while keeping the
+   readable single-column stack below 600px.
+   ============================================ */
+@media (min-width: 601px) and (max-width: 1024px) {
+  .classes-grid { grid-template-columns: repeat(2, 1fr); }
+  .voice-grid { grid-template-columns: repeat(2, 1fr); }
+  .staff-grid { grid-template-columns: repeat(2, 1fr); }
+  .blog-grid { grid-template-columns: repeat(2, 1fr); }
+  .fee-grid { grid-template-columns: repeat(2, 1fr); }
+  .pain-grid { grid-template-columns: repeat(2, 1fr); }
+  .usp-grid { grid-template-columns: repeat(2, 1fr); }
+  .keypoints { grid-template-columns: repeat(3, 1fr); gap: 22px; }
+  .two-col { gap: 40px; }
+  .container { padding: 0 32px; }
+}
+
+/* ============================================
+   Mobile phone tuning - up to 600px
+   Larger, easier-to-tap CTAs, right-sized
+   photos and text, and a hero that fits the
+   screen instead of feeling oversized.
+   ============================================ */
+@media (max-width: 600px) {
+  .container { padding: 0 20px; }
+
+  /* Hero: let it size to its content instead of a tall fixed vh,
+     and center everything for a cleaner mobile look */
+  .hero {
+    height: auto;
+    min-height: 100svh;
+    padding-top: 96px;
+    padding-bottom: 32px;
+    align-items: center;
+  }
+  .hero-content { padding-bottom: 0; text-align: center; }
+  .hero-badges, .hero-trust, .hero-socials { justify-content: center; }
+  .hero-actions { flex-direction: column; align-items: stretch; margin-top: 24px; }
+  .hero-content h1 { font-size: clamp(30px, 9vw, 40px); }
+
+  /* CTA buttons: bigger tap targets everywhere, full-width where they
+     already appear in a row, so the trial button is impossible to miss */
+  .btn { padding: 16px 26px; font-size: 15.5px; border-radius: 12px; }
+  .btn-lg { padding: 18px 28px; font-size: 16.5px; }
+  .hero-actions .btn,
+  .cta-banner-actions .btn,
+  .cta-box .btn { width: 100%; text-align: center; }
+  .cta-banner-actions { flex-direction: column; align-items: stretch; }
+  .cta-box { padding: 28px 22px; }
+  .sticky-cta .btn-block { font-size: 16px; padding: 17px; }
+
+  /* Photos: right-size fixed-height media so they read clearly on a
+     narrow single-column layout without dominating the screen */
+  .kp-media { height: 220px; }
+  .class-media { height: 210px; }
+  .blog-media { height: 200px; }
+  .director-photo { max-width: 220px; margin: 0 auto; aspect-ratio: 1/1; }
+
+  /* Director bio card: the desktop side-by-side grid is unreadable at
+     phone widths, so stack it and center the stats */
+  .director-strip { grid-template-columns: 1fr; padding: 32px 24px; text-align: center; }
+  .director-stats { justify-content: center; }
+
+  /* Text sizing: keep line lengths comfortable and headings from
+     overpowering the viewport */
+  .class-title { font-size: 27px; }
+  .c-elite { font-size: 30px; }
+  .pain-answer { flex-direction: column; text-align: center; padding: 26px 22px; }
+  .faq-q { padding: 18px 2px; font-size: 14.5px; }
+  .cta-banner { padding: 36px 26px; }
+}
+
+@media (max-width: 380px) {
+  .container { padding: 0 16px; }
+  .hero-content h1 { font-size: clamp(28px, 9vw, 34px); }
+}
