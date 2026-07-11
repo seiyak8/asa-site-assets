@@ -625,7 +625,7 @@ img { max-width: 100%; display: block; }
 }
 .fee-list li.best strong { color: var(--teal-dark); }
 .fee-list li.best::before {
-  content: "莠ｺ豌湧o.1";
+  content: "人気No.1";
   position: absolute;
   top: -10px;
   left: 14px;
@@ -880,6 +880,7 @@ img { max-width: 100%; display: block; }
 }
 .logo-chip-img { display: flex; align-items: center; padding: 12px 24px; }
 .logo-chip-img img { height: 30px; width: auto; display: block; }
+.logo-chip-img.logo-tall img { height: 48px; }
 
 /* Blog */
 .blog-grid {
