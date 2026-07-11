@@ -878,6 +878,8 @@ img { max-width: 100%; display: block; }
   font-size: 14px;
   color: var(--text-body);
 }
+.logo-chip-img { display: flex; align-items: center; padding: 12px 24px; }
+.logo-chip-img img { height: 30px; width: auto; display: block; }
 
 /* Blog */
 .blog-grid {
