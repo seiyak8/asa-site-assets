@@ -1352,10 +1352,12 @@ img { max-width: 100%; display: block; }
   .container { padding: 0 20px; }
 
   /* Hero: let it size to its content instead of a tall fixed vh,
-     and center everything for a cleaner mobile look */
+     and center everything for a cleaner mobile look.
+     Cap the svh value: inside the STUDIO embed iframe 100svh equals
+     the full iframe height (16000px+), not the phone screen */
   .hero {
     height: auto;
-    min-height: 100svh;
+    min-height: min(100svh, 680px);
     padding-top: 96px;
     padding-bottom: 32px;
     align-items: center;
