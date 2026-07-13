@@ -62,7 +62,19 @@ document.querySelectorAll('a[href^="#"]').forEach(link => {
     target.scrollIntoView({ behavior: 'smooth', block: 'start' });
   });
 });
-
+// --- Language toggle buttons ("日本語" / "EN") ---
+// 「日本語」ボタン → 日本語版 Home claude (page9)
+// 「EN」ボタン    → 英語版 Home claude (メインページ)
+const JP_HOME_URL = 'https://preview.studio.site/live/xPORlenzar/9';
+const EN_HOME_URL = 'https://preview.studio.site/live/xPORlenzar';
+document.querySelectorAll('.lang-toggle').forEach(link => {
+  const label = link.textContent.trim().toLowerCase();
+  const target = label.includes('日本') ? JP_HOME_URL : EN_HOME_URL;
+  link.addEventListener('click', e => {
+    e.preventDefault();
+    window.location.href = target;
+  });
+});
 // FAQ accordion
 function toggleFaq(el) {
   const item = el.parentElement;
