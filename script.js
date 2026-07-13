@@ -62,19 +62,27 @@ document.querySelectorAll('a[href^="#"]').forEach(link => {
     target.scrollIntoView({ behavior: 'smooth', block: 'start' });
   });
 });
+
 // --- Language toggle buttons ("日本語" / "EN") ---
-// 「日本語」ボタン → 日本語版 Home claude (page9)
-// 「EN」ボタン    → 英語版 Home claude (メインページ)
-const JP_HOME_URL = 'https://preview.studio.site/live/xPORlenzar/9';
-const EN_HOME_URL = 'https://preview.studio.site/live/xPORlenzar';
+// The header language switchers share the .lang-toggle class:
+//   "日本語" -> Japanese "Home claude" (page 9)
+//   "EN"     -> English  "Home claude" (site home)
+// Build the target as a same-site URL so it works both on the published domain
+// (advancesportsacademy.studio.site/...) and the STUDIO preview
+// (preview.studio.site/live/<id>/...), which carries an extra path prefix.
+function langUrl(pagePath) {
+  const previewBase = location.pathname.match(/^\/live\/[^/]+/);
+  return location.origin + (previewBase ? previewBase[0] : '') + pagePath;
+}
 document.querySelectorAll('.lang-toggle').forEach(link => {
   const label = link.textContent.trim().toLowerCase();
-  const target = label.includes('日本') ? JP_HOME_URL : EN_HOME_URL;
+  const target = label.includes('日本') ? langUrl('/9') : langUrl('/');
   link.addEventListener('click', e => {
     e.preventDefault();
     window.location.href = target;
   });
 });
+
 // FAQ accordion
 function toggleFaq(el) {
   const item = el.parentElement;
