@@ -114,26 +114,38 @@
   <div class="steps">
     <h2>貼り替え手順</h2>
     <ol>
-      <li><strong>コードをコピー</strong>ボタンを押す</li>
-      <li>GASエディタでコードを<strong>全選択（Ctrl/⌘ + A）して削除</strong></li>
-      <li>貼り付け（Ctrl/⌘ + V）して保存</li>
-      <li><code>checkProperties()</code> を実行し、ラベルが <code>LINE_CHANNEL_ACCESS_TOKEN:</code> に変わることを確認</li>
-      <li><code>testSheetAccess()</code> → <code>setupFormTriggers()</code> の順に実行</li>
+      <li>タブでファイルを選び、<strong>コードをコピー</strong>を押す</li>
+      <li>GASエディタで<strong>同じ名前のファイル</strong>を開く（無ければ左の「ファイル ＋」で作る）</li>
+      <li>中身を<strong>全選択（Ctrl/⌘ + A）して削除</strong>し、貼り付け（Ctrl/⌘ + V）して保存</li>
     </ol>
-    <p class="hint">ラベルが <code>TOKEN:</code> のままなら、貼り替えができていません。</p>
+    <p class="hint">
+      <strong>Code.gs</strong> … LINE 自動応答。貼り替え後は <code>checkProperties()</code> を実行し、
+      ラベルが <code>LINE_CHANNEL_ACCESS_TOKEN:</code> に変わることを確認。<br>
+      <strong>MetaInsights.gs</strong> … 広告と Instagram の日次取得。<em>新規ファイル</em>として追加し、
+      <code>testMetaConnection()</code> → <code>backfillMeta(90)</code> → <code>setupMetaTriggers()</code> の順に実行。
+    </p>
   </div>
 
   <div class="tabs" role="tablist">
     <button class="tab" role="tab" aria-selected="true" aria-controls="p-code" id="t-code">Code.gs</button>
+    <button class="tab" role="tab" aria-selected="false" aria-controls="p-meta" id="t-meta">MetaInsights.gs</button>
     <button class="tab" role="tab" aria-selected="false" aria-controls="p-doc" id="t-doc">README</button>
   </div>
 
   <div class="panel active" id="p-code" role="tabpanel" aria-labelledby="t-code">
     <div class="bar">
-      <span class="meta">{{LINES}} 行</span>
-      <button class="copy" id="copyBtn">コードをコピー</button>
+      <span class="meta">Code.gs — {{LINES}} 行</span>
+      <button class="copy" data-copy="src-code">コードをコピー</button>
     </div>
-    <div class="codebox"><pre class="code"><code id="src">{{CODE}}</code></pre></div>
+    <div class="codebox"><pre class="code"><code id="src-code">{{CODE}}</code></pre></div>
+  </div>
+
+  <div class="panel" id="p-meta" role="tabpanel" aria-labelledby="t-meta">
+    <div class="bar">
+      <span class="meta">MetaInsights.gs — {{META_LINES}} 行</span>
+      <button class="copy" data-copy="src-meta">コードをコピー</button>
+    </div>
+    <div class="codebox"><pre class="code"><code id="src-meta">{{META_CODE}}</code></pre></div>
   </div>
 
   <div class="panel" id="p-doc" role="tabpanel" aria-labelledby="t-doc">
@@ -143,7 +155,10 @@
 </div>
 
 <script>
-  const SOURCE = {{CODE_JSON}};
+  const SOURCES = {
+    'src-code': {{CODE_JSON}},
+    'src-meta': {{META_CODE_JSON}}
+  };
 
   const tabs = [...document.querySelectorAll('.tab')];
   tabs.forEach(function (tab) {
@@ -156,28 +171,30 @@
     });
   });
 
-  const btn = document.getElementById('copyBtn');
-  btn.addEventListener('click', async function () {
-    let ok = false;
-    try {
-      await navigator.clipboard.writeText(SOURCE);
-      ok = true;
-    } catch (err) {
-      // クリップボードAPIが使えない環境向けのフォールバック
-      const ta = document.createElement('textarea');
-      ta.value = SOURCE;
-      ta.style.position = 'fixed';
-      ta.style.opacity = '0';
-      document.body.appendChild(ta);
-      ta.select();
-      try { ok = document.execCommand('copy'); } catch (e2) { ok = false; }
-      document.body.removeChild(ta);
-    }
-    btn.textContent = ok ? '✓ コピーしました' : 'コピーできません — 手動で選択してください';
-    btn.classList.toggle('done', ok);
-    setTimeout(function () {
-      btn.textContent = 'コードをコピー';
-      btn.classList.remove('done');
-    }, 2600);
+  document.querySelectorAll('.copy').forEach(function (btn) {
+    btn.addEventListener('click', async function () {
+      const text = SOURCES[btn.dataset.copy];
+      let ok = false;
+      try {
+        await navigator.clipboard.writeText(text);
+        ok = true;
+      } catch (err) {
+        // クリップボードAPIが使えない環境向けのフォールバック
+        const ta = document.createElement('textarea');
+        ta.value = text;
+        ta.style.position = 'fixed';
+        ta.style.opacity = '0';
+        document.body.appendChild(ta);
+        ta.select();
+        try { ok = document.execCommand('copy'); } catch (e2) { ok = false; }
+        document.body.removeChild(ta);
+      }
+      btn.textContent = ok ? '✓ コピーしました' : 'コピーできません — 手動で選択してください';
+      btn.classList.toggle('done', ok);
+      setTimeout(function () {
+        btn.textContent = 'コードをコピー';
+        btn.classList.remove('done');
+      }, 2600);
+    });
   });
 </script>

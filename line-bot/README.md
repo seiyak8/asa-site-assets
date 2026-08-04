@@ -1,9 +1,14 @@
-# ASA LINE 自動応答（Google Apps Script）
+# ASA 自動化スクリプト（Google Apps Script）
 
-`Code.gs` は LINE 公式アカウントの自動応答スクリプト。Queue用スプレッドシートに
-バインドされた Apps Script プロジェクトにそのまま貼り付けて使う。
-
+Queue 用スプレッドシートにバインドされた Apps Script プロジェクトの中身。
 このリポジトリは版管理のためのミラー。**編集したら Apps Script 側にも反映すること。**
+
+| ファイル | 役割 |
+|---|---|
+| `Code.gs` | LINE 公式アカウントの自動応答（日本語 / English / ภาษาไทย） |
+| `MetaInsights.gs` | Meta広告と Instagram の実績を毎日取り込み、シートに蓄積 |
+
+貼り付け用のページ（コピーボタン付き）は `reports/build-code-viewer.py` が生成する。
 
 ---
 
@@ -144,7 +149,85 @@ return k.indexOf('システム用ID') !== -1 || k.toLowerCase().indexOf('system 
 - 入会フォームは、英語とタイ語が**1つのフォームで2言語対応**する設計。
   フォーム内の `Language` 質問で言語を判定する。日本語のみ別フォーム。
 
-## 未対応
+---
+
+# MetaInsights.gs — 広告と Instagram の実績取得
+
+Windsor.ai の置き換え。無料プラン（`plan_id: FREE`）では接続を1アカウントまで
+減らしてもデータが返らないことを確認したため、Meta Graph API を直接叩く形にした。
+費用はかからない。
+
+## なぜ Apps Script に置くか
+
+Claude の実行環境からは `graph.facebook.com` に到達できない（ネットワークポリシーで
+遮断）。Google のサーバーから叩く必要がある。
+
+副次的に、日次でシートに貯めるので**履歴が残る**。Windsor.ai は都度問い合わせるだけで
+過去との比較ができなかった。週次レポートは Google ドライブ経由でこのシートを読むため、
+レポート側の仕組みは何も変えなくてよい。
+
+## 追加するスクリプトプロパティ
+
+| キー | 値 |
+|---|---|
+| `META_ACCESS_TOKEN` | システムユーザーの長期トークン |
+| `META_AD_ACCOUNT_ID` | 広告アカウントID（先頭の `act_` は付けなくてよい） |
+| `META_IG_USER_ID` | `17841461840431729`（ASA公式。Windsor.ai の調査で判明済み） |
+
+**トークンはチャットに貼らず、直接スクリプトプロパティに保存すること。**
+
+## トークンの発行（社長の作業）
+
+通常のユーザートークンは60日で失効する。**システムユーザートークンは失効しない**ので、
+そちらを使う。
+
+1. business.facebook.com → ビジネス設定 → ユーザー → システムユーザー → 追加
+2. そのシステムユーザーに**アセットを割り当て**（ASAの広告アカウント、Instagramアカウント）
+3. 「新しいトークンを生成」で以下の権限を付ける
+   - `ads_read` … 広告の実績
+   - `instagram_basic` / `instagram_manage_insights` … Instagram
+   - `pages_read_engagement` … IGはFacebookページ経由で紐付くため
+
+## 実行の順序
+
+1. `testMetaConnection()` … **まずこれ。** 広告アカウント名と Instagram ユーザー名が
+   返るか、どの指標が取れるかを確認する
+2. `backfillMeta(90)` … 過去90日を投入して履歴を作る
+3. `setupMetaTriggers()` … 毎日の自動取得を登録（広告5時台 / Instagram 6時台）
+
+## 作られるシート
+
+| タブ | 列 |
+|---|---|
+| `MetaAds` | date / campaign / spend / impressions / reach / clicks / cpc / ctr / fetchedAt |
+| `InstagramDaily` | date / reach / profileViews / followers / fetchedAt |
+
+`date + campaign` をキーに**上書き**するので、再実行しても行が重複しない。
+
+## 設計上の判断
+
+**エラーをゼロで埋めない。** トークン切れや権限不足で取得できなかったとき、0を書くと
+レポートを読む側が「広告費を使わなかった」と誤読する。「使っていない」と「測れない」は
+経営判断上まったく別なので、例外として止める。Windsor.ai のプラン上限メッセージを
+危うくゼロと報告しかけた反省から。
+
+**Instagram の指標は仕様変更が多い。** `impressions` は2025年に廃止され `views` に
+なった。取れなかった指標は0で埋めず空欄にし、ログに記録して処理は続ける。
+実際に何が返るかは `testMetaConnection()` で確かめること。
+
+**APIバージョンは `v21.0` に固定。** 既定に任せると予告なく上がる。
+
+## 未確認
+
+- **広告アカウントID**：Windsor.ai は `123772694720152`（名前「小島 聖矢」）を
+  返していたが、これが広告アカウントIDかユーザーIDかは未確認。
+  `testMetaConnection()` で名前が返れば正しい。
+- **消化額の突き合わせ**：Meta広告マネージャの画面と必ず照合すること。
+  数字が合わなければ設計から見直す。
+
+---
+
+## 未対応（LINE側）
 
 - **タイ語訳そのものの確認**：語尾は整えたが、本文の言い回しは現地スタッフに一度
   読んでもらうこと。元のマニュアルに「男性用」という不自然な見出しが残っていたことからも、

@@ -17,6 +17,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 CODE = ROOT / 'line-bot' / 'Code.gs'
+META = ROOT / 'line-bot' / 'MetaInsights.gs'
 README = ROOT / 'line-bot' / 'README.md'
 TEMPLATE = ROOT / 'reports' / 'code-viewer.tpl.html'
 OUTPUT = ROOT / 'reports' / 'line-bot-code-viewer.html'
@@ -93,28 +94,34 @@ def render_markdown(source: str) -> str:
 
 def main() -> int:
     code = CODE.read_text(encoding='utf-8')
+    meta = META.read_text(encoding='utf-8')
     readme = README.read_text(encoding='utf-8')
 
-    for secret in FORBIDDEN:
-        if secret in code or secret in readme:
-            print('中止：秘密情報が含まれています。', file=sys.stderr)
+    for name, text in (('Code.gs', code), ('MetaInsights.gs', meta), ('README.md', readme)):
+        for secret in FORBIDDEN:
+            if secret in text:
+                print(f'中止：{name} に秘密情報が含まれています。', file=sys.stderr)
+                return 1
+        # コードは <script> 内に JSON として埋め込む。'</' があるとタグを閉じてしまう。
+        if '</' in text and name != 'README.md':
+            print(f"中止：{name} に '</' が含まれており、埋め込むとタグが壊れます。", file=sys.stderr)
             return 1
-
-    # コードは <script> 内に JSON として埋め込む。'</' があるとタグを閉じてしまう。
-    if '</' in code:
-        print("中止：Code.gs に '</' が含まれており、埋め込むとタグが壊れます。", file=sys.stderr)
-        return 1
 
     page = TEMPLATE.read_text(encoding='utf-8')
     page = (page
             .replace('{{CODE_JSON}}', json.dumps(code))
+            .replace('{{META_CODE_JSON}}', json.dumps(meta))
             .replace('{{CODE}}', html.escape(code))
+            .replace('{{META_CODE}}', html.escape(meta))
             .replace('{{README}}', render_markdown(readme))
-            .replace('{{LINES}}', str(code.count('\n') + 1)))
+            .replace('{{LINES}}', str(code.count('\n') + 1))
+            .replace('{{META_LINES}}', str(meta.count('\n') + 1)))
 
     OUTPUT.write_text(page, encoding='utf-8')
     print(f'{OUTPUT.relative_to(ROOT)} を生成しました'
-          f'（{code.count(chr(10)) + 1} 行 / {round(len(page.encode()) / 1024)} KB）')
+          f'（Code.gs {code.count(chr(10)) + 1} 行 / '
+          f'MetaInsights.gs {meta.count(chr(10)) + 1} 行 / '
+          f'{round(len(page.encode()) / 1024)} KB）')
     return 0
 
 

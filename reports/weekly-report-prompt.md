@@ -39,7 +39,25 @@ Routine の設定：
 複数の表が連結されているため、`種別` が空・`:-:`・`種別` の行は除外する。
 `登録日` は `Thu Sep 19 2024 21:57:13 GMT+0700 (Indochina Time)` 形式。
 
-**広告データについて（2026-08-04 時点）**
+**広告データ（Meta Graph API 経由）**
+
+`MetaInsights.gs` が毎日 Meta Graph API から取得し、Queue と同じスプレッドシート
+（`1WGIH9RSUQYiohj9wT2yuk9Py8qOHUpMrYYxlnec8tFk`）の以下のタブに蓄積している。
+Google ドライブコネクタでそのまま読める。
+
+| タブ | 列 |
+|---|---|
+| `MetaAds` | date / campaign / spend / impressions / reach / clicks / cpc / ctr / fetchedAt |
+| `InstagramDaily` | date / reach / profileViews / followers / fetchedAt |
+
+先週分を日付で絞り、キャンペーン別の消化額・クリック・CPC・CTR と前週比を出す。
+**空欄は「実績ゼロ」ではなく「取得できなかった」を意味する**（取得失敗時は0を書かない
+設計にしてある）。日付に抜けがあれば、その旨をレポートに明記すること。
+
+体験申込数と突き合わせれば CPA（体験1件あたりの広告費）が出せる。これが本来
+いちばん見たい数字なので、両方のデータが揃っていれば必ず載せる。
+
+**Windsor.ai について（2026-08-04 時点・参考）**
 
 Windsor.ai は無料プラン（`plan_id: FREE`）で、**接続を1アカウントまで減らしても
 データを返さないことを確認済み**。応答は「今日の日付・全項目ゼロ」の1行だけで、
