@@ -203,10 +203,10 @@ const SCENE1_TRIAL_INQUIRY = {
       'คลาส', 'ราคา', 'ค่าเรียน', 'ตาราง', 'ฟุตบอล', 'ยิมนาสติก', 'กรีฑา'
     ],
     body:
-      'ขอบคุณที่สอบถามเกี่ยวกับคลาสทดลองเรียนค่ะ/ครับ\n' +
-      'กรุณากรอกแบบฟอร์มใบสมัครผ่านลิงก์ด้านล่างนี้ได้เลยค่ะ/ครับ\n\n' +
+      'ขอบคุณที่สอบถามเกี่ยวกับคลาสทดลองเรียนค่ะ\n' +
+      'กรุณากรอกแบบฟอร์มใบสมัครผ่านลิงก์ด้านล่างนี้ได้เลยค่ะ\n\n' +
       '{{FORM_LINK}}\n\n' +
-      'หากมีข้อสงสัยใดๆ สามารถสอบถามได้ตลอดเวลานะคะ/ครับ\n' +
+      'หากมีข้อสงสัยใดๆ สามารถสอบถามได้ตลอดเวลานะคะ\n' +
       'Advance Sports Academy'
   }
 };
@@ -272,8 +272,8 @@ const HUMAN_HANDOFF_REPLY = {
   en: 'Thank you for your message.\n' +
       'A member of our team will review it and get back to you shortly.\n\n' +
       'Advance Sports Academy',
-  th: 'ขอบคุณสำหรับข้อความค่ะ/ครับ\n' +
-      'ทีมงานจะตรวจสอบและติดต่อกลับโดยเร็วที่สุดค่ะ/ครับ\n\n' +
+  th: 'ขอบคุณสำหรับข้อความค่ะ\n' +
+      'ทีมงานจะตรวจสอบและติดต่อกลับโดยเร็วที่สุดค่ะ\n\n' +
       'Advance Sports Academy'
 };
 
@@ -301,14 +301,14 @@ const SCENE2_AFTER_TRIAL_FORM = {
     '・Children in the gymnastics class: bare feet or socks\n\n' +
     'Thank you,\nAdvance Sports Academy',
   th:
-    'ขอบคุณสำหรับการกรอกแบบฟอร์มค่ะ/ครับ\n\n' +
+    'ขอบคุณสำหรับการกรอกแบบฟอร์มค่ะ\n\n' +
     'ในวันทดลองเรียนจะมีกิจกรรมที่ต้องวิ่งเยอะ หากบุตรหลานทำไม่ไหวจนจบ ' +
-    'ทางสตาฟฟ์จะคอยช่วยเหลือ ไม่ต้องกังวลนะคะ/ครับ\n\n' +
-    'สิ่งที่ต้องเตรียมมาในวันนั้น มีดังนี้ค่ะ/ครับ\n\n' +
+    'ทางสตาฟฟ์จะคอยช่วยเหลือ ไม่ต้องกังวลนะคะ\n\n' +
+    'สิ่งที่ต้องเตรียมมาในวันนั้น มีดังนี้ค่ะ\n\n' +
     '・ชุดกีฬาและชุดเปลี่ยน\n・ผ้าขนหนู\n・น้ำดื่ม (เตรียมมาเยอะๆ)\n' +
     '・รองเท้า (รองเท้าที่ใส่ประจำก็ได้) *ห้ามใส่รองเท้าสตั๊ด\n' +
     '・เด็กที่เรียนคลาสยิมนาสติก: เท้าเปล่าหรือใส่ถุงเท้า\n\n' +
-    'ขอบคุณค่ะ/ครับ\nAdvance Sports Academy'
+    'ขอบคุณค่ะ\nAdvance Sports Academy'
 };
 
 /* ============================================================
@@ -325,7 +325,7 @@ const ENROLL_FORMS = {
     ticket: { url: 'https://forms.gle/7zPVmuvZm4K6ECL96', entryId: 'entry.40411921' },
     monthly: { url: 'https://forms.gle/rVgkZ5EnKDjHKojA6', entryId: 'entry.1931375728' }
   },
-  // タイ語フォームは未作成のため、当面は英語フォームを共用（フォーム内のLanguage質問で言語判定）
+  // 英語とタイ語は1つのフォームで2言語対応している（フォーム内のLanguage質問で言語を判定）
   en: ENROLL_FORMS_SHARED_EN_TH,
   th: ENROLL_FORMS_SHARED_EN_TH
 };
@@ -348,15 +348,43 @@ const SCENE3_AFTER_TRIAL_LESSON = {
     '・Monthly Plan Application: {{MONTHLY_LINK}}\n\n' +
     "Please don't hesitate to contact us if you have any questions.\n" +
     'Best,\nAdvance Sports Academy',
-  th:
-    'ขอบคุณสำหรับคลาสทดลองเรียนในวันนี้นะคะ/ครับ! หวังว่าน้องๆ จะสนุกกันนะคะ/ครับ\n\n' +
-    'ที่ ASA เรามีแผนสมาชิก 2 แบบเพื่อให้เหมาะกับตารางเวลาของคุณลูกค้า คือแบบตั๋วและแบบรายเดือน\n' +
-    'หากสนใจที่จะสมัครสมาชิก สามารถสมัครผ่านลิงก์ด้านล่างนี้ได้เลยค่ะ/ครับ\n\n' +
-    '・แบบฟอร์มสมัครสมาชิก (แบบตั๋ว): {{TICKET_LINK}}\n' +
-    '・แบบฟอร์มสมัครสมาชิก (แบบรายเดือน): {{MONTHLY_LINK}}\n\n' +
-    'หากมีข้อสงสัยใดๆ สามารถติดต่อสอบถามได้ตลอดเวลานะคะ/ครับ ขอบคุณค่ะ/ครับ\n' +
-    'Advance Sports Academy'
+  // タイ語のみ、送信するスタッフの性別で語尾を切り替える。
+  // シーン3は自動返信ではなくスタッフが手動で送るため、実在の話し手がいる。
+  th: {
+    female:
+      'ขอบคุณสำหรับคลาสทดลองเรียนในวันนี้นะคะ! หวังว่าน้องๆ จะสนุกกันนะคะ\n\n' +
+      'ที่ ASA เรามีแผนสมาชิก 2 แบบเพื่อให้เหมาะกับตารางเวลาของคุณลูกค้า คือแบบตั๋วและแบบรายเดือน\n' +
+      'หากสนใจที่จะสมัครสมาชิก สามารถสมัครผ่านลิงก์ด้านล่างนี้ได้เลยค่ะ\n\n' +
+      '・แบบฟอร์มสมัครสมาชิก (แบบตั๋ว): {{TICKET_LINK}}\n' +
+      '・แบบฟอร์มสมัครสมาชิก (แบบรายเดือน): {{MONTHLY_LINK}}\n\n' +
+      'หากมีข้อสงสัยใดๆ สามารถติดต่อสอบถามได้ตลอดเวลานะคะ ขอบคุณค่ะ\n' +
+      'Advance Sports Academy',
+    male:
+      'ขอบคุณสำหรับคลาสทดลองเรียนในวันนี้นะครับ! หวังว่าน้องๆ จะสนุกกันนะครับ\n\n' +
+      'ที่ ASA เรามีแผนสมาชิก 2 แบบเพื่อให้เหมาะกับตารางเวลาของคุณลูกค้า คือแบบตั๋วและแบบรายเดือน\n' +
+      'หากสนใจที่จะสมัครสมาชิก สามารถสมัครผ่านลิงก์ด้านล่างนี้ได้เลยครับ\n\n' +
+      '・แบบฟอร์มสมัครสมาชิก (แบบตั๋ว): {{TICKET_LINK}}\n' +
+      '・แบบฟอร์มสมัครสมาชิก (แบบรายเดือน): {{MONTHLY_LINK}}\n\n' +
+      'หากมีข้อสงสัยใดๆ สามารถติดต่อสอบถามได้ตลอดเวลานะครับ ขอบคุณครับ\n' +
+      'Advance Sports Academy'
+  }
 };
+
+/**
+ * シーン3の本文を取り出す。
+ * 日本語・英語は文字列、タイ語は性別ごとの2種類。
+ */
+function resolveScene3Body_(lang, gender) {
+  const body = SCENE3_AFTER_TRIAL_LESSON[lang];
+  if (!body) return null;
+  if (typeof body === 'string') return body;
+  return body[gender] || body.female;
+}
+
+/** その言語が送信者の性別を必要とするか。 */
+function scene3NeedsGender_(lang) {
+  return typeof SCENE3_AFTER_TRIAL_LESSON[lang] === 'object';
+}
 
 /* ============================================================
  * シーン4：入会後（Band招待）
@@ -393,9 +421,9 @@ const SCENE4_WELCOME = {
     'All future communications will be through Band, so we appreciate your understanding and cooperation.\n' +
     'If you have any questions, please feel free to ask.',
   th:
-    'ยินดีต้อนรับสู่ ASA ค่ะ/ครับ! ขอบคุณที่สมัครสมาชิกกับ ASA ค่ะ/ครับ\n\n' +
+    'ยินดีต้อนรับสู่ ASA ค่ะ! ขอบคุณที่สมัครสมาชิกกับ ASA ค่ะ\n\n' +
     'ที่ ASA เราใช้กลุ่ม Band สำหรับสมาชิกเท่านั้น เพื่อจัดการตารางเรียน เช็คชื่อ และรับข่าวสารจากทางอคาเดมี่\n' +
-    'รบกวนเข้าร่วมผ่านลิงก์ด้านล่างและตั้งค่าโปรไฟล์ Band ด้วยค่ะ/ครับ\n\n' +
+    'รบกวนเข้าร่วมผ่านลิงก์ด้านล่างและตั้งค่าโปรไฟล์ Band ด้วยค่ะ\n\n' +
     'คำขอในการตั้งค่าโปรไฟล์\n' +
     '・ชื่อและรูปโปรไฟล์: กรุณาเปลี่ยนเป็นข้อมูลของบุตรหลาน\n' +
     '・ชื่อรอง: กรุณากรอกชื่อผู้ปกครอง\n' +
@@ -403,8 +431,8 @@ const SCENE4_WELCOME = {
     'กลุ่ม Band ที่ต้องเข้าร่วม\n' +
     '・Band Enjoy Class: https://band.us/n/aaab05z058D9Y\n' +
     '・Band Advance Class: https://band.us/n/a6a7A3n3g0Ddk\n\n' +
-    'การติดต่อในอนาคตทั้งหมดจะดำเนินการผ่าน Band จึงขอขอบคุณสำหรับความเข้าใจและความร่วมมือค่ะ/ครับ\n' +
-    'หากมีข้อสงสัยใดๆ สามารถสอบถามได้ตลอดเวลาค่ะ/ครับ'
+    'การติดต่อในอนาคตทั้งหมดจะดำเนินการผ่าน Band จึงขอขอบคุณสำหรับความเข้าใจและความร่วมมือค่ะ\n' +
+    'หากมีข้อสงสัยใดๆ สามารถสอบถามได้ตลอดเวลาค่ะ'
 };
 
 /* ============================================================
@@ -718,13 +746,33 @@ function sendScene3Manual() {
     return;
   }
 
+  // タイ語は語尾が話し手の性別で変わるため、送信するスタッフの性別を尋ねる。
+  let gender = '';
+  if (scene3NeedsGender_(lang)) {
+    const genderResp = ui.prompt(
+      '送信するご自身の性別を入力してください\n' +
+      '女性なら f（語尾は ค่ะ / นะคะ）、男性なら m（語尾は ครับ / นะครับ）'
+    );
+    if (genderResp.getSelectedButton() !== ui.Button.OK) return;
+    const answer = genderResp.getResponseText().trim().toLowerCase();
+    if (answer === 'f' || answer === 'female' || answer === '女' || answer === '女性') {
+      gender = 'female';
+    } else if (answer === 'm' || answer === 'male' || answer === '男' || answer === '男性') {
+      gender = 'male';
+    } else {
+      ui.alert('性別は f（女性）または m（男性）で入力してください。');
+      return;
+    }
+  }
+
   const forms = ENROLL_FORMS[lang];
-  const text = SCENE3_AFTER_TRIAL_LESSON[lang]
+  const text = resolveScene3Body_(lang, gender)
     .replace('{{TICKET_LINK}}', buildPrefilledFormLink_(forms.ticket.url, forms.ticket.entryId, userId))
     .replace('{{MONTHLY_LINK}}', buildPrefilledFormLink_(forms.monthly.url, forms.monthly.entryId, userId));
 
+  const keyword = 'scene3_after_trial_lesson_' + lang + (gender ? '_' + gender : '');
   const ok = pushMessage_(userId, text);
-  if (ok) logRow_(userId, 'scene3_after_trial_lesson_' + lang, text, true, '');
+  if (ok) logRow_(userId, keyword, text, true, '');
   ui.alert(ok ? '送信しました。' : '送信に失敗しました。ログを確認してください。');
 }
 
