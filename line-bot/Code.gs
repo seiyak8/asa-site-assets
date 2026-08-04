@@ -730,13 +730,39 @@ function extractFormLanguage_(e) {
  * スタッフ操作
  * ============================================================ */
 
+/**
+ * 入力されたLINEユーザーIDを整える。
+ *
+ * スプレッドシートのセルはIDを折り返して表示するため、コピーすると
+ * 途中に改行や空白が紛れ込むことがある。前後だけでなく**内部の空白も**
+ * 取り除かないと、LINEが `The property, 'to', in the request body is invalid`
+ * を返して送信に失敗する。
+ */
+function normalizeUserId_(raw) {
+  return (raw || '').toString().replace(/\s+/g, '');
+}
+
+/** LINEのユーザーIDは U に続く32桁の16進数。 */
+function isValidUserId_(userId) {
+  return /^U[0-9a-f]{32}$/i.test(userId);
+}
+
 function sendScene3Manual() {
   const ui = SpreadsheetApp.getUi();
 
   const userIdResp = ui.prompt('LINEユーザーIDを入力してください');
   if (userIdResp.getSelectedButton() !== ui.Button.OK) return;
-  const userId = userIdResp.getResponseText().trim();
+  const userId = normalizeUserId_(userIdResp.getResponseText());
   if (!userId) return;
+  if (!isValidUserId_(userId)) {
+    ui.alert(
+      'LINEユーザーIDの形式が正しくありません。\n\n' +
+      '入力された値: ' + userId + '（' + userId.length + '文字）\n\n' +
+      '正しくは U で始まる33文字（Uのあと16進数32桁）です。\n' +
+      'Queueシートの userId 列からセルごとコピーしてください。'
+    );
+    return;
+  }
 
   const langResp = ui.prompt('言語を入力してください（ja / en / th）');
   if (langResp.getSelectedButton() !== ui.Button.OK) return;
@@ -781,8 +807,16 @@ function addKnownContact() {
 
   const userIdResp = ui.prompt('既存顧客として登録するLINEユーザーIDを入力してください');
   if (userIdResp.getSelectedButton() !== ui.Button.OK) return;
-  const userId = userIdResp.getResponseText().trim();
+  const userId = normalizeUserId_(userIdResp.getResponseText());
   if (!userId) return;
+  if (!isValidUserId_(userId)) {
+    ui.alert(
+      'LINEユーザーIDの形式が正しくありません。\n\n' +
+      '入力された値: ' + userId + '（' + userId.length + '文字）\n\n' +
+      '正しくは U で始まる33文字です。Queueシートの userId 列からコピーしてください。'
+    );
+    return;
+  }
 
   const memoResp = ui.prompt('メモ（任意・名前など。空欄でもOK）');
   const memo = memoResp.getSelectedButton() === ui.Button.OK ? memoResp.getResponseText().trim() : '';
