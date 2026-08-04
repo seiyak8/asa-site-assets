@@ -18,6 +18,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 CODE = ROOT / 'line-bot' / 'Code.gs'
 META = ROOT / 'line-bot' / 'MetaInsights.gs'
+OUT = ROOT / 'line-bot' / 'Outreach.gs'
 README = ROOT / 'line-bot' / 'README.md'
 TEMPLATE = ROOT / 'reports' / 'code-viewer.tpl.html'
 OUTPUT = ROOT / 'reports' / 'line-bot-code-viewer.html'
@@ -95,9 +96,10 @@ def render_markdown(source: str) -> str:
 def main() -> int:
     code = CODE.read_text(encoding='utf-8')
     meta = META.read_text(encoding='utf-8')
+    out = OUT.read_text(encoding='utf-8')
     readme = README.read_text(encoding='utf-8')
 
-    for name, text in (('Code.gs', code), ('MetaInsights.gs', meta), ('README.md', readme)):
+    for name, text in (('Code.gs', code), ('MetaInsights.gs', meta), ('Outreach.gs', out), ('README.md', readme)):
         for secret in FORBIDDEN:
             if secret in text:
                 print(f'中止：{name} に秘密情報が含まれています。', file=sys.stderr)
@@ -111,16 +113,20 @@ def main() -> int:
     page = (page
             .replace('{{CODE_JSON}}', json.dumps(code))
             .replace('{{META_CODE_JSON}}', json.dumps(meta))
+            .replace('{{OUT_CODE_JSON}}', json.dumps(out))
             .replace('{{CODE}}', html.escape(code))
             .replace('{{META_CODE}}', html.escape(meta))
+            .replace('{{OUT_CODE}}', html.escape(out))
             .replace('{{README}}', render_markdown(readme))
             .replace('{{LINES}}', str(code.count('\n') + 1))
-            .replace('{{META_LINES}}', str(meta.count('\n') + 1)))
+            .replace('{{META_LINES}}', str(meta.count('\n') + 1))
+            .replace('{{OUT_LINES}}', str(out.count('\n') + 1)))
 
     OUTPUT.write_text(page, encoding='utf-8')
     print(f'{OUTPUT.relative_to(ROOT)} を生成しました'
           f'（Code.gs {code.count(chr(10)) + 1} 行 / '
           f'MetaInsights.gs {meta.count(chr(10)) + 1} 行 / '
+          f'Outreach.gs {out.count(chr(10)) + 1} 行 / '
           f'{round(len(page.encode()) / 1024)} KB）')
     return 0
 
