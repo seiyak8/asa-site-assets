@@ -1,0 +1,1110 @@
+<title>ASA LINE ボット — Code.gs / README</title>
+<style>
+  :root {
+    --accent: #1BAFC9;
+    --accent-deep: #0E8FA6;
+    --good: #2E9E6B;
+    --bg: #F7FAFB;
+    --surface: #FFFFFF;
+    --surface-2: #EFF5F7;
+    --code-bg: #FBFDFD;
+    --ink: #0B0F14;
+    --ink-2: #3D4A52;
+    --ink-3: #6B7A82;
+    --rule: #DDE6E9;
+    --rule-strong: #C3D2D7;
+    --gutter: #96A6AE;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --accent: #3FC6DE; --accent-deep: #7BDCEC; --good: #4FBF8B;
+      --bg: #0B0F14; --surface: #141A21; --surface-2: #1B242C; --code-bg: #10161C;
+      --ink: #EDF3F5; --ink-2: #B3C1C8; --ink-3: #7F8F98;
+      --rule: #24303A; --rule-strong: #33424E; --gutter: #56666F;
+    }
+  }
+  :root[data-theme="dark"] {
+    --accent: #3FC6DE; --accent-deep: #7BDCEC; --good: #4FBF8B;
+    --bg: #0B0F14; --surface: #141A21; --surface-2: #1B242C; --code-bg: #10161C;
+    --ink: #EDF3F5; --ink-2: #B3C1C8; --ink-3: #7F8F98;
+    --rule: #24303A; --rule-strong: #33424E; --gutter: #56666F;
+  }
+  :root[data-theme="light"] {
+    --accent: #1BAFC9; --accent-deep: #0E8FA6; --good: #2E9E6B;
+    --bg: #F7FAFB; --surface: #FFFFFF; --surface-2: #EFF5F7; --code-bg: #FBFDFD;
+    --ink: #0B0F14; --ink-2: #3D4A52; --ink-3: #6B7A82;
+    --rule: #DDE6E9; --rule-strong: #C3D2D7; --gutter: #96A6AE;
+  }
+
+  body {
+    margin: 0; background: var(--bg); color: var(--ink-2);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Hiragino Sans",
+                 "Hiragino Kaku Gothic ProN", "Yu Gothic", "Noto Sans JP", Meiryo, sans-serif;
+    line-height: 1.75; -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 1000px; margin: 0 auto; padding: 28px 18px 70px; display: flex; flex-direction: column; gap: 22px; }
+
+  h1,h2,h3 { color: var(--ink); margin: 0; letter-spacing: -.015em; line-height: 1.35; text-wrap: balance; }
+  h1 { font-size: 1.5rem; font-weight: 700; }
+  h2 { font-size: 1.1rem; font-weight: 700; margin-top: 12px; }
+  h3 { font-size: .95rem; font-weight: 700; margin-top: 8px; }
+  p { margin: 0; font-size: .92rem; }
+  strong { color: var(--ink); font-weight: 700; }
+  hr { border: 0; border-top: 1px solid var(--rule); margin: 6px 0; }
+  ul { margin: 0; padding-left: 1.2em; display: flex; flex-direction: column; gap: 5px; font-size: .92rem; }
+
+  header.top { border-bottom: 2px solid var(--ink); padding-bottom: 14px; display: flex; flex-direction: column; gap: 6px; }
+  .eyebrow { font-size: .68rem; font-weight: 700; letter-spacing: .13em; text-transform: uppercase; color: var(--accent-deep); }
+  .sub { font-size: .82rem; color: var(--ink-3); }
+
+  .steps { background: var(--surface); border: 1px solid var(--rule); border-left: 4px solid var(--accent); border-radius: 3px; padding: 16px 20px; display: flex; flex-direction: column; gap: 8px; }
+  .steps ol { margin: 0; padding-left: 1.3em; display: flex; flex-direction: column; gap: 5px; font-size: .92rem; }
+
+  .tabs { display: flex; gap: 6px; border-bottom: 1px solid var(--rule-strong); }
+  .tab {
+    appearance: none; border: 1px solid var(--rule); border-bottom: 0; background: var(--surface-2);
+    color: var(--ink-3); font: inherit; font-size: .86rem; font-weight: 700;
+    padding: 8px 18px; border-radius: 3px 3px 0 0; cursor: pointer; margin-bottom: -1px;
+  }
+  .tab[aria-selected="true"] { background: var(--surface); color: var(--ink); border-bottom: 1px solid var(--surface); }
+  .tab:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  .panel { display: none; flex-direction: column; gap: 14px; }
+  .panel.active { display: flex; }
+
+  .bar { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; justify-content: space-between; }
+  .bar .meta { font-size: .8rem; color: var(--ink-3); font-variant-numeric: tabular-nums; }
+  .copy {
+    appearance: none; border: 0; border-radius: 3px; cursor: pointer;
+    background: var(--accent-deep); color: #fff; font: inherit; font-size: .86rem; font-weight: 700;
+    padding: 9px 20px;
+  }
+  .copy:hover { filter: brightness(1.08); }
+  .copy:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+  .copy.done { background: var(--good); }
+
+  .codebox {
+    background: var(--code-bg); border: 1px solid var(--rule); border-radius: 3px;
+    max-height: 68vh; overflow: auto;
+  }
+  pre.code {
+    margin: 0; padding: 14px 16px;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Noto Sans Mono", monospace;
+    font-size: 12.5px; line-height: 1.65; color: var(--ink-2);
+    tab-size: 2; white-space: pre;
+  }
+  pre.code code { display: block; }
+
+  .doc { background: var(--surface); border: 1px solid var(--rule); border-radius: 3px; padding: 20px 24px; display: flex; flex-direction: column; gap: 10px; }
+  .doc code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: .86em; background: var(--surface-2); padding: 1px 5px; border-radius: 3px; color: var(--ink); }
+  pre.blk { margin: 0; background: var(--code-bg); border: 1px solid var(--rule); border-radius: 3px; padding: 12px 14px; overflow-x: auto; }
+  pre.blk code { background: none; padding: 0; font-size: 12.5px; line-height: 1.6; }
+
+  .hint { font-size: .82rem; color: var(--ink-3); }
+</style>
+
+<div class="wrap">
+
+  <header class="top">
+    <span class="eyebrow">Advance Sports Academy</span>
+    <h1>LINE ボット 修正版</h1>
+    <span class="sub">下の「コードをコピー」を押して、GASエディタの中身と入れ替えてください</span>
+  </header>
+
+  <div class="steps">
+    <h2>貼り替え手順</h2>
+    <ol>
+      <li><strong>コードをコピー</strong>ボタンを押す</li>
+      <li>GASエディタでコードを<strong>全選択（Ctrl/⌘ + A）して削除</strong></li>
+      <li>貼り付け（Ctrl/⌘ + V）して保存</li>
+      <li><code>checkProperties()</code> を実行し、ラベルが <code>LINE_CHANNEL_ACCESS_TOKEN:</code> に変わることを確認</li>
+      <li><code>testSheetAccess()</code> → <code>setupFormTriggers()</code> の順に実行</li>
+    </ol>
+    <p class="hint">ラベルが <code>TOKEN:</code> のままなら、貼り替えができていません。</p>
+  </div>
+
+  <div class="tabs" role="tablist">
+    <button class="tab" role="tab" aria-selected="true" aria-controls="p-code" id="t-code">Code.gs</button>
+    <button class="tab" role="tab" aria-selected="false" aria-controls="p-doc" id="t-doc">README</button>
+  </div>
+
+  <div class="panel active" id="p-code" role="tabpanel" aria-labelledby="t-code">
+    <div class="bar">
+      <span class="meta">828 行</span>
+      <button class="copy" id="copyBtn">コードをコピー</button>
+    </div>
+    <div class="codebox"><pre class="code"><code id="src">/**
+ * Advance Sports Academy — LINE 自動応答（日本語 / English / ภาษาไทย）
+ *
+ * ============================================================
+ * 設定：スクリプトプロパティに以下の「キー」で保存する
+ * ============================================================
+ *   LINE_CHANNEL_ACCESS_TOKEN … LINEチャネルアクセストークン
+ *   QUEUE_SHEET_ID            … キュー用スプレッドシートのID
+ *
+ * ★ トークンやシートIDをこのコードに直接書かないこと。
+ *   スクリプトプロパティにのみ保存する（GASエディタ左の歯車 →
+ *   プロジェクトの設定 → スクリプト プロパティ）。
+ *
+ * ============================================================
+ * シート構成
+ * ============================================================
+ *   Queue         A:timestamp B:userId C:keyword D:replyText E:sent F:担当者
+ *   KnownContacts A:userId    B:memo
+ *   UserLang      A:userId    B:lang   C:updatedAt
+ *
+ *   ★ Queue の F列「担当者」
+ *     スタッフが手動対応する案件は担当者名を記入する。記入がある行は
+ *     自動送信をスキップ（保留）する。空欄に戻せば次回実行で送信される。
+ */
+
+/* ============================================================
+ * 基本設定
+ * ============================================================ */
+
+/**
+ * 返信のタイミング。
+ *   &#x27;immediate&#x27; … 問い合わせを受けた瞬間に返信する（推奨）
+ *   &#x27;queue&#x27;     … Queueに積み、定時実行(processQueue)でまとめて送る
+ *
+ * &#x27;queue&#x27; だと最大1時間お待たせすることになる。体験の問い合わせは
+ * 反応速度がそのまま申込率に効くため、既定を &#x27;immediate&#x27; にしている。
+ * スタッフが全件を事前確認したい場合のみ &#x27;queue&#x27; に戻すこと。
+ */
+const REPLY_MODE = &#x27;immediate&#x27;;
+
+const PROP_TOKEN = &#x27;LINE_CHANNEL_ACCESS_TOKEN&#x27;;
+const PROP_SHEET_ID = &#x27;QUEUE_SHEET_ID&#x27;;
+
+function getChannelAccessToken_() {
+  const token = PropertiesService.getScriptProperties().getProperty(PROP_TOKEN);
+  if (!token) {
+    throw new Error(
+      &#x27;スクリプトプロパティ &#x27; + PROP_TOKEN + &#x27; が未設定です。&#x27; +
+      &#x27;GASエディタ → プロジェクトの設定 → スクリプト プロパティ で設定してください。&#x27;
+    );
+  }
+  return token;
+}
+
+function getSpreadsheet_() {
+  const id = PropertiesService.getScriptProperties().getProperty(PROP_SHEET_ID);
+  if (!id) {
+    throw new Error(
+      &#x27;スクリプトプロパティ &#x27; + PROP_SHEET_ID + &#x27; が未設定です。&#x27; +
+      &#x27;キュー用スプレッドシートのIDを設定してください。&#x27;
+    );
+  }
+  return SpreadsheetApp.openById(id);
+}
+
+function getOrCreateSheet_(name, header) {
+  const ss = getSpreadsheet_();
+  let sheet = ss.getSheetByName(name);
+  if (!sheet) {
+    sheet = ss.insertSheet(name);
+    sheet.appendRow(header);
+  }
+  return sheet;
+}
+
+function getQueueSheet_() {
+  return getOrCreateSheet_(&#x27;Queue&#x27;,
+    [&#x27;timestamp&#x27;, &#x27;userId&#x27;, &#x27;keyword&#x27;, &#x27;replyText&#x27;, &#x27;sent&#x27;, &#x27;担当者&#x27;]);
+}
+
+function getKnownContactsSheet_() {
+  return getOrCreateSheet_(&#x27;KnownContacts&#x27;, [&#x27;userId&#x27;, &#x27;memo&#x27;]);
+}
+
+function getUserLangSheet_() {
+  return getOrCreateSheet_(&#x27;UserLang&#x27;, [&#x27;userId&#x27;, &#x27;lang&#x27;, &#x27;updatedAt&#x27;]);
+}
+
+function isKnownContact_(userId) {
+  const data = getKnownContactsSheet_().getDataRange().getValues();
+  for (let i = 1; i &lt; data.length; i++) {
+    if (data[i][0] === userId) return true;
+  }
+  return false;
+}
+
+/* ============================================================
+ * 言語判定
+ * ============================================================ */
+
+/**
+ * 明示的な言語切替の合図。利用者がこれを送れば以後その言語で応対する。
+ */
+const LANG_SWITCH = [
+  { lang: &#x27;ja&#x27;, words: [&#x27;日本語&#x27;] },
+  { lang: &#x27;en&#x27;, words: [&#x27;English&#x27;, &#x27;english&#x27;] },
+  { lang: &#x27;th&#x27;, words: [&#x27;ภาษาไทย&#x27;, &#x27;ไทย&#x27;] }
+];
+
+function getStoredLang_(userId) {
+  const data = getUserLangSheet_().getDataRange().getValues();
+  for (let i = 1; i &lt; data.length; i++) {
+    if (data[i][0] === userId) return data[i][1];
+  }
+  return null;
+}
+
+function saveLang_(userId, lang) {
+  const sheet = getUserLangSheet_();
+  const data = sheet.getDataRange().getValues();
+  for (let i = 1; i &lt; data.length; i++) {
+    if (data[i][0] === userId) {
+      if (data[i][1] !== lang) {
+        sheet.getRange(i + 1, 2).setValue(lang);
+        sheet.getRange(i + 1, 3).setValue(new Date());
+      }
+      return;
+    }
+  }
+  sheet.appendRow([userId, lang, new Date()]);
+}
+
+/**
+ * 言語を決める。強い手がかりから順に見る。
+ *   1. 明示的な切替の合図（「日本語」「English」「ภาษาไทย」）
+ *   2. 文字種（タイ文字 → th、かな → ja）
+ *   3. 過去にこの利用者と使った言語
+ *   4. 漢字のみ → ja
+ *   5. どれでもなければ en
+ *
+ * 3 を 4 より先に見るのが要点。タイ在住の方が英語で書いてくることは多く、
+ * 一度タイ語で会話した相手には以後もタイ語で応対したい。
+ */
+function detectLanguage_(text, userId) {
+  for (const entry of LANG_SWITCH) {
+    for (const w of entry.words) {
+      if (text.indexOf(w) !== -1) return entry.lang;
+    }
+  }
+  if (/[฀-๿]/.test(text)) return &#x27;th&#x27;;
+  if (/[぀-ヿ]/.test(text)) return &#x27;ja&#x27;;
+
+  const stored = userId ? getStoredLang_(userId) : null;
+  if (stored) return stored;
+
+  if (/[一-鿿]/.test(text)) return &#x27;ja&#x27;;
+  return &#x27;en&#x27;;
+}
+
+/* ============================================================
+ * シーン1：体験レッスンの問い合わせ
+ * ============================================================ */
+
+const TRIAL_FORM = {
+  baseUrl: &#x27;https://forms.gle/b9WfqjbGprrhJZJeA&#x27;,
+  entryId: &#x27;entry.370446376&#x27;
+};
+
+const SCENE1_TRIAL_INQUIRY = {
+  ja: {
+    keywords: [
+      &#x27;はじめまして&#x27;, &#x27;初めまして&#x27;, &#x27;こんにちは&#x27;, &#x27;日本語&#x27;,
+      &#x27;体験&#x27;, &#x27;たいけん&#x27;, &#x27;トライアル&#x27;, &#x27;申し込み&#x27;, &#x27;申込&#x27;, &#x27;もうしこみ&#x27;,
+      &#x27;入会&#x27;, &#x27;レッスン&#x27;, &#x27;クラス&#x27;, &#x27;見学&#x27;, &#x27;習い事&#x27;,
+      &#x27;サッカー&#x27;, &#x27;体操&#x27;, &#x27;陸上&#x27;, &#x27;教室&#x27;
+    ],
+    body:
+      &#x27;初めまして！\n&#x27; +
+      &#x27;お問い合わせいただき、ありがとうございます。\n&#x27; +
+      &#x27;体験をお申し込みの場合は下記リンクより申し込みフォームにご記入いただけますと幸いです。\n\n&#x27; +
+      &#x27;体験お申し込みフォーム\n{{FORM_LINK}}\n\n&#x27; +
+      &#x27;ご不明な点がございましたら、いつでもお気軽にお問い合わせください。\n\n&#x27; +
+      &#x27;よろしくお願いいたします。\nAdvance Sports Academy&#x27;
+  },
+  en: {
+    // 照合は containsKeyword_ が大文字小文字を無視し、単語境界で行う
+    keywords: [
+      &#x27;English&#x27;, &#x27;hello&#x27;, &#x27;hi&#x27;, &#x27;trial&#x27;, &#x27;apply&#x27;, &#x27;application&#x27;,
+      &#x27;join&#x27;, &#x27;class&#x27;, &#x27;classes&#x27;, &#x27;lesson&#x27;, &#x27;lessons&#x27;, &#x27;enroll&#x27;, &#x27;register&#x27;,
+      &#x27;interested&#x27;, &#x27;football&#x27;, &#x27;soccer&#x27;, &#x27;gymnastics&#x27;, &#x27;athletics&#x27;, &#x27;academy&#x27;,
+      &#x27;price&#x27;, &#x27;fee&#x27;, &#x27;fees&#x27;, &#x27;cost&#x27;, &#x27;schedule&#x27;
+    ],
+    body:
+      &#x27;Thanks for reaching out about a trial lesson!\n&#x27; +
+      &#x27;Please fill out the application form at the link below.\n\n&#x27; +
+      &#x27;{{FORM_LINK}}\n\n&#x27; +
+      &#x27;If you have any questions, feel free to ask anytime.\n&#x27; +
+      &#x27;Advance Sports Academy&#x27;
+  },
+  th: {
+    keywords: [
+      &#x27;ภาษาไทย&#x27;, &#x27;ไทย&#x27;, &#x27;สวัสดี&#x27;, &#x27;ทดลอง&#x27;, &#x27;สมัคร&#x27;, &#x27;สนใจ&#x27;, &#x27;เรียน&#x27;,
+      &#x27;คลาส&#x27;, &#x27;ราคา&#x27;, &#x27;ค่าเรียน&#x27;, &#x27;ตาราง&#x27;, &#x27;ฟุตบอล&#x27;, &#x27;ยิมนาสติก&#x27;, &#x27;กรีฑา&#x27;
+    ],
+    body:
+      &#x27;ขอบคุณที่สอบถามเกี่ยวกับคลาสทดลองเรียนค่ะ/ครับ\n&#x27; +
+      &#x27;กรุณากรอกแบบฟอร์มใบสมัครผ่านลิงก์ด้านล่างนี้ได้เลยค่ะ/ครับ\n\n&#x27; +
+      &#x27;{{FORM_LINK}}\n\n&#x27; +
+      &#x27;หากมีข้อสงสัยใดๆ สามารถสอบถามได้ตลอดเวลานะคะ/ครับ\n&#x27; +
+      &#x27;Advance Sports Academy&#x27;
+  }
+};
+
+/* ============================================================
+ * フォーム入力完了の申告メッセージ
+ * ============================================================ */
+
+const FORM_COMPLETION_KEYWORDS = {
+  ja: [&#x27;完了&#x27;, &#x27;送信しました&#x27;, &#x27;送りました&#x27;, &#x27;提出しました&#x27;, &#x27;入力しました&#x27;, &#x27;記入しました&#x27;],
+  en: [&#x27;completed&#x27;, &#x27;submitted&#x27;, &#x27;finished the form&#x27;, &#x27;done with the form&#x27;, &#x27;filled out&#x27;, &#x27;filled in&#x27;],
+  th: [&#x27;เสร็จ&#x27;, &#x27;ส่งแล้ว&#x27;, &#x27;กรอกแล้ว&#x27;]
+};
+
+function isFormCompletionMessage_(text, lang) {
+  const keywords = FORM_COMPLETION_KEYWORDS[lang] || [];
+  return keywords.some(function (kw) { return containsKeyword_(text, kw); });
+}
+
+/* ============================================================
+ * 人が対応すべき問い合わせ
+ * ============================================================
+ * 料金交渉・返金・退会・クレーム・怪我など、自動で答えると実害が出る話。
+ * 自動返信せず、Queue の担当者欄に印を付けてスタッフに回す。
+ */
+
+const ESCALATION_KEYWORDS = [
+  // 日本語
+  &#x27;返金&#x27;, &#x27;解約&#x27;, &#x27;退会&#x27;, &#x27;やめたい&#x27;, &#x27;辞めたい&#x27;, &#x27;キャンセル&#x27;, &#x27;苦情&#x27;, &#x27;クレーム&#x27;,
+  &#x27;怪我&#x27;, &#x27;けが&#x27;, &#x27;ケガ&#x27;, &#x27;事故&#x27;, &#x27;救急&#x27;, &#x27;病院&#x27;, &#x27;返してほしい&#x27;, &#x27;値引き&#x27;, &#x27;割引&#x27;,
+  // English
+  &#x27;refund&#x27;, &#x27;cancel&#x27;, &#x27;quit&#x27;, &#x27;withdraw&#x27;, &#x27;complaint&#x27;, &#x27;injury&#x27;, &#x27;injured&#x27;,
+  &#x27;accident&#x27;, &#x27;hospital&#x27;, &#x27;discount&#x27;, &#x27;money back&#x27;,
+  // ไทย
+  &#x27;คืนเงิน&#x27;, &#x27;ยกเลิก&#x27;, &#x27;ลาออก&#x27;, &#x27;ร้องเรียน&#x27;, &#x27;บาดเจ็บ&#x27;, &#x27;อุบัติเหตุ&#x27;, &#x27;ส่วนลด&#x27;
+];
+
+/**
+ * キーワード照合。
+ *
+ * 英数字のキーワードは単語境界で照合する。部分一致にすると
+ * &quot;quite good&quot; が &quot;quit&quot;（退会）に、&quot;application&quot; が &quot;apply&quot; に
+ * 誤って引っかかる。日本語とタイ語は語を空白で区切らないため部分一致で照合する。
+ */
+function containsKeyword_(text, keyword) {
+  if (/^[\x20-\x7E]+$/.test(keyword)) {
+    const escaped = keyword.replace(/[.*+?^${}()|[\]\\]/g, &#x27;\\$&amp;&#x27;);
+    return new RegExp(&#x27;(^|[^A-Za-z])&#x27; + escaped + &#x27;([^A-Za-z]|$)&#x27;, &#x27;i&#x27;).test(text);
+  }
+  return text.indexOf(keyword) !== -1;
+}
+
+function needsHuman_(text) {
+  return ESCALATION_KEYWORDS.some(function (kw) {
+    return containsKeyword_(text, kw);
+  });
+}
+
+const HUMAN_HANDOFF_REPLY = {
+  ja: &#x27;お問い合わせありがとうございます。\n&#x27; +
+      &#x27;内容を確認のうえ、担当者より改めてご連絡いたします。\n&#x27; +
+      &#x27;少々お待ちくださいませ。\n\nAdvance Sports Academy&#x27;,
+  en: &#x27;Thank you for your message.\n&#x27; +
+      &#x27;A member of our team will review it and get back to you shortly.\n\n&#x27; +
+      &#x27;Advance Sports Academy&#x27;,
+  th: &#x27;ขอบคุณสำหรับข้อความค่ะ/ครับ\n&#x27; +
+      &#x27;ทีมงานจะตรวจสอบและติดต่อกลับโดยเร็วที่สุดค่ะ/ครับ\n\n&#x27; +
+      &#x27;Advance Sports Academy&#x27;
+};
+
+/* ============================================================
+ * シーン2：体験フォーム送信後（持ち物案内）
+ * ============================================================ */
+
+const SCENE2_AFTER_TRIAL_FORM = {
+  ja:
+    &#x27;フォームの入力ありがとうございます。\n\n&#x27; +
+    &#x27;当日は走るメニューが多いため、最後までやりきれない場合がございますが\n&#x27; +
+    &#x27;その際はスタッフの方でサポートしますのでご安心ください。\n\n&#x27; +
+    &#x27;当日の持ち物こちらになります。\n\n&#x27; +
+    &#x27;・運動着＆着替え\n・タオル\n・水分（多めに）\n&#x27; +
+    &#x27;・シューズ（普段はいている物で可）*スパイク禁止\n&#x27; +
+    &#x27;・体操クラスのお子様は裸足または靴下\n\n&#x27; +
+    &#x27;よろしくお願いいたします。\nAdvance Sports Academy&#x27;,
+  en:
+    &#x27;Thank you for filling out the form.\n\n&#x27; +
+    &quot;The trial lesson includes a lot of running activities, so if your child isn&#x27;t able to &quot; +
+    &quot;complete everything, please don&#x27;t worry — our staff will be there to support them.\n\n&quot; +
+    &quot;Here&#x27;s what to bring on the day:\n\n&quot; +
+    &#x27;・Sportswear &amp; a change of clothes\n・A towel\n・Water (plenty of it)\n&#x27; +
+    &#x27;・Shoes (regular sneakers are fine) *Spikes are not allowed\n&#x27; +
+    &#x27;・Children in the gymnastics class: bare feet or socks\n\n&#x27; +
+    &#x27;Thank you,\nAdvance Sports Academy&#x27;,
+  th:
+    &#x27;ขอบคุณสำหรับการกรอกแบบฟอร์มค่ะ/ครับ\n\n&#x27; +
+    &#x27;ในวันทดลองเรียนจะมีกิจกรรมที่ต้องวิ่งเยอะ หากบุตรหลานทำไม่ไหวจนจบ &#x27; +
+    &#x27;ทางสตาฟฟ์จะคอยช่วยเหลือ ไม่ต้องกังวลนะคะ/ครับ\n\n&#x27; +
+    &#x27;สิ่งที่ต้องเตรียมมาในวันนั้น มีดังนี้ค่ะ/ครับ\n\n&#x27; +
+    &#x27;・ชุดกีฬาและชุดเปลี่ยน\n・ผ้าขนหนู\n・น้ำดื่ม (เตรียมมาเยอะๆ)\n&#x27; +
+    &#x27;・รองเท้า (รองเท้าที่ใส่ประจำก็ได้) *ห้ามใส่รองเท้าสตั๊ด\n&#x27; +
+    &#x27;・เด็กที่เรียนคลาสยิมนาสติก: เท้าเปล่าหรือใส่ถุงเท้า\n\n&#x27; +
+    &#x27;ขอบคุณค่ะ/ครับ\nAdvance Sports Academy&#x27;
+};
+
+/* ============================================================
+ * シーン3：体験終了後（スタッフが手動送信）
+ * ============================================================ */
+
+const ENROLL_FORMS_SHARED_EN_TH = {
+  ticket: { url: &#x27;https://forms.gle/f9LzcNzLpxhSNp398&#x27;, entryId: &#x27;entry.54950727&#x27; },
+  monthly: { url: &#x27;https://forms.gle/3PrDTtsBvZARfsc17&#x27;, entryId: &#x27;entry.1179713979&#x27; }
+};
+
+const ENROLL_FORMS = {
+  ja: {
+    ticket: { url: &#x27;https://forms.gle/7zPVmuvZm4K6ECL96&#x27;, entryId: &#x27;entry.40411921&#x27; },
+    monthly: { url: &#x27;https://forms.gle/rVgkZ5EnKDjHKojA6&#x27;, entryId: &#x27;entry.1931375728&#x27; }
+  },
+  // タイ語フォームは未作成のため、当面は英語フォームを共用（フォーム内のLanguage質問で言語判定）
+  en: ENROLL_FORMS_SHARED_EN_TH,
+  th: ENROLL_FORMS_SHARED_EN_TH
+};
+
+const SCENE3_AFTER_TRIAL_LESSON = {
+  ja:
+    &#x27;体験レッスン、ありがとうございました！\n&#x27; +
+    &#x27;お子さんは楽しんでいただけましたでしょうか？\n&#x27; +
+    &#x27;ASAでは、お客様のご都合に合わせてチケット制と月額制の2種類の会員プランをご用意しています。\n&#x27; +
+    &#x27;今後のご入会をご検討いただけましたら、下記よりお申し込みください。\n\n&#x27; +
+    &#x27;・チケット制お申し込みフォーム: {{TICKET_LINK}}\n\n&#x27; +
+    &#x27;・月額制お申し込みフォーム: {{MONTHLY_LINK}}\n\n&#x27; +
+    &#x27;ご不明な点がございましたら、いつでもお気軽にご連絡くださいね。\n\n&#x27; +
+    &#x27;よろしくお願いいたします。\nAdvance Sports Academy&#x27;,
+  en:
+    &#x27;Thank you for coming to the trial lesson today! We hope your child had a great time.\n\n&#x27; +
+    &#x27;At ASA, we offer two membership plans to fit your schedule: a ticket-based plan and a monthly plan.\n&#x27; +
+    &quot;If you&#x27;re considering joining, please apply below.\n\n&quot; +
+    &#x27;・Ticket Plan Application: {{TICKET_LINK}}\n\n&#x27; +
+    &#x27;・Monthly Plan Application: {{MONTHLY_LINK}}\n\n&#x27; +
+    &quot;Please don&#x27;t hesitate to contact us if you have any questions.\n&quot; +
+    &#x27;Best,\nAdvance Sports Academy&#x27;,
+  th:
+    &#x27;ขอบคุณสำหรับคลาสทดลองเรียนในวันนี้นะคะ/ครับ! หวังว่าน้องๆ จะสนุกกันนะคะ/ครับ\n\n&#x27; +
+    &#x27;ที่ ASA เรามีแผนสมาชิก 2 แบบเพื่อให้เหมาะกับตารางเวลาของคุณลูกค้า คือแบบตั๋วและแบบรายเดือน\n&#x27; +
+    &#x27;หากสนใจที่จะสมัครสมาชิก สามารถสมัครผ่านลิงก์ด้านล่างนี้ได้เลยค่ะ/ครับ\n\n&#x27; +
+    &#x27;・แบบฟอร์มสมัครสมาชิก (แบบตั๋ว): {{TICKET_LINK}}\n&#x27; +
+    &#x27;・แบบฟอร์มสมัครสมาชิก (แบบรายเดือน): {{MONTHLY_LINK}}\n\n&#x27; +
+    &#x27;หากมีข้อสงสัยใดๆ สามารถติดต่อสอบถามได้ตลอดเวลานะคะ/ครับ ขอบคุณค่ะ/ครับ\n&#x27; +
+    &#x27;Advance Sports Academy&#x27;
+};
+
+/* ============================================================
+ * シーン4：入会後（Band招待）
+ * ============================================================ */
+
+const SCENE4_WELCOME = {
+  ja:
+    &#x27;ようこそASAへ！\n&#x27; +
+    &#x27;この度はASAにご入会いただき、誠にありがとうございます。\n&#x27; +
+    &#x27;ASAでは、会員様限定のBandグループを利用して、スケジュール管理や出欠確認、アカデミーからのお知らせなどを行っています。\n&#x27; +
+    &#x27;お手数ですが、下記リンクよりご参加いただき、Bandプロフィールの設定をお願いいたします。\n\n&#x27; +
+    &#x27;プロフィール設定のお願い\n&#x27; +
+    &#x27;・プロフィールの名前と写真：お子様の情報に変更してください。\n&#x27; +
+    &#x27;・サブの名前：保護者様のお名前をご記入ください。\n&#x27; +
+    &#x27;・兄弟姉妹がいる場合：クラスに参加するお子様全員の名前と写真を添付してください。\n\n&#x27; +
+    &#x27;ご参加いただくBandグループ\n&#x27; +
+    &#x27;・Band Enjoy Class: https://band.us/n/aaab05z058D9Y\n&#x27; +
+    &#x27;・Band Advance Class: https://band.us/n/a6a7A3n3g0Ddk\n\n&#x27; +
+    &#x27;今後の連絡は全てBandにて行いますので、ご理解とご協力をお願いいたします。\n&#x27; +
+    &#x27;ご不明な点がございましたら、お気軽にお問い合わせください。\n\n&#x27; +
+    &#x27;よろしくお願いいたします。\nAdvance Sports Academy&#x27;,
+  en:
+    &#x27;Welcome to ASA!\n&#x27; +
+    &#x27;Thank you for joining us.\n&#x27; +
+    &#x27;At ASA, we use an exclusive Band group for members to manage schedules, track attendance, &#x27; +
+    &#x27;and receive announcements from the academy. Please join via the link below and set up your Band profile.\n\n&#x27; +
+    &#x27;Profile Setup Request\n&#x27; +
+    &quot;・Profile Name &amp; Photo: Please change to your child&#x27;s information.\n&quot; +
+    &quot;・Nickname/Sub Name: Please enter the parent&#x27;s/guardian&#x27;s name.\n&quot; +
+    &#x27;・If you have siblings enrolled: Please include the names and photos of all children attending classes.\n\n&#x27; +
+    &#x27;Band Groups to Join\n&#x27; +
+    &#x27;・Band Enjoy Class: https://band.us/n/aaab05z058D9Y\n&#x27; +
+    &#x27;・Band Advance Class: https://band.us/n/a6a7A3n3g0Ddk\n\n&#x27; +
+    &#x27;All future communications will be through Band, so we appreciate your understanding and cooperation.\n&#x27; +
+    &#x27;If you have any questions, please feel free to ask.&#x27;,
+  th:
+    &#x27;ยินดีต้อนรับสู่ ASA ค่ะ/ครับ! ขอบคุณที่สมัครสมาชิกกับ ASA ค่ะ/ครับ\n\n&#x27; +
+    &#x27;ที่ ASA เราใช้กลุ่ม Band สำหรับสมาชิกเท่านั้น เพื่อจัดการตารางเรียน เช็คชื่อ และรับข่าวสารจากทางอคาเดมี่\n&#x27; +
+    &#x27;รบกวนเข้าร่วมผ่านลิงก์ด้านล่างและตั้งค่าโปรไฟล์ Band ด้วยค่ะ/ครับ\n\n&#x27; +
+    &#x27;คำขอในการตั้งค่าโปรไฟล์\n&#x27; +
+    &#x27;・ชื่อและรูปโปรไฟล์: กรุณาเปลี่ยนเป็นข้อมูลของบุตรหลาน\n&#x27; +
+    &#x27;・ชื่อรอง: กรุณากรอกชื่อผู้ปกครอง\n&#x27; +
+    &#x27;・กรณีมีพี่น้อง: กรุณาแนบชื่อและรูปภาพของบุตรหลานทุกคนที่เข้าร่วมคลาส\n\n&#x27; +
+    &#x27;กลุ่ม Band ที่ต้องเข้าร่วม\n&#x27; +
+    &#x27;・Band Enjoy Class: https://band.us/n/aaab05z058D9Y\n&#x27; +
+    &#x27;・Band Advance Class: https://band.us/n/a6a7A3n3g0Ddk\n\n&#x27; +
+    &#x27;การติดต่อในอนาคตทั้งหมดจะดำเนินการผ่าน Band จึงขอขอบคุณสำหรับความเข้าใจและความร่วมมือค่ะ/ครับ\n&#x27; +
+    &#x27;หากมีข้อสงสัยใดๆ สามารถสอบถามได้ตลอดเวลาค่ะ/ครับ&#x27;
+};
+
+/* ============================================================
+ * Webhook
+ * ============================================================ */
+
+function doPost(e) {
+  if (!e || !e.postData) {
+    Logger.log(&#x27;doPostが手動実行されました。動作確認はLINE Developersの「検証」ボタン、&#x27; +
+               &#x27;または実際にLINEでメッセージを送って行ってください。&#x27;);
+    return jsonOutput_({ status: &#x27;no postData&#x27; });
+  }
+
+  let body;
+  try {
+    body = JSON.parse(e.postData.contents);
+  } catch (err) {
+    Logger.log(&#x27;リクエストのJSON解析に失敗: &#x27; + err.message);
+    return jsonOutput_({ status: &#x27;bad request&#x27; });
+  }
+
+  const events = body.events || [];
+
+  events.forEach(function (event) {
+    try {
+      handleEvent_(event);
+    } catch (err) {
+      // 1件の失敗で残りのイベントを落とさない
+      Logger.log(&#x27;イベント処理でエラー: &#x27; + err.message);
+    }
+  });
+
+  return jsonOutput_({ status: &#x27;ok&#x27; });
+}
+
+function handleEvent_(event) {
+  if (event.type !== &#x27;message&#x27; || event.message.type !== &#x27;text&#x27;) return;
+
+  const userId = event.source.userId;
+  const replyToken = event.replyToken;
+  const text = event.message.text;
+
+  const lang = detectLanguage_(text, userId);
+  saveLang_(userId, lang);
+
+  // 1. 人が対応すべき内容なら、自動で答えずスタッフに回す
+  if (needsHuman_(text)) {
+    replyMessage_(replyToken, HUMAN_HANDOFF_REPLY[lang]);
+    logRow_(userId, &#x27;human_handoff_&#x27; + lang, text, true, &#x27;要対応&#x27;);
+    Logger.log(&#x27;要対応として記録: &#x27; + userId);
+    return;
+  }
+
+  // 2. フォーム入力完了の申告（シーン1より先に判定する）
+  if (isFormCompletionMessage_(text, lang)) {
+    if (alreadyHandled_(userId, &#x27;scene2_after_trial_form_&#x27; + lang)) {
+      Logger.log(&#x27;持ち物案内は送信済みのためスキップ: &#x27; + userId);
+      return;
+    }
+    replyMessage_(replyToken, SCENE2_AFTER_TRIAL_FORM[lang]);
+    logRow_(userId, &#x27;scene2_after_trial_form_&#x27; + lang, SCENE2_AFTER_TRIAL_FORM[lang], true, &#x27;&#x27;);
+    return;
+  }
+
+  // 3. 体験の問い合わせ
+  const config = SCENE1_TRIAL_INQUIRY[lang];
+  const matched = config.keywords.some(function (kw) {
+    return containsKeyword_(text, kw);
+  });
+  if (!matched) return;
+
+  if (isKnownContact_(userId)) {
+    Logger.log(&#x27;既存顧客のためシーン1をスキップ: &#x27; + userId);
+    return;
+  }
+
+  const keyword = &#x27;scene1_trial_inquiry_&#x27; + lang;
+  if (alreadyHandled_(userId, keyword)) {
+    Logger.log(&#x27;同じ案内が登録済みのためスキップ: &#x27; + userId + &#x27; / &#x27; + keyword);
+    return;
+  }
+
+  const replyText = config.body.replace(
+    &#x27;{{FORM_LINK}}&#x27;,
+    buildPrefilledFormLink_(TRIAL_FORM.baseUrl, TRIAL_FORM.entryId, userId)
+  );
+
+  if (REPLY_MODE === &#x27;immediate&#x27;) {
+    const ok = replyMessage_(replyToken, replyText);
+    logRow_(userId, keyword, replyText, ok, &#x27;&#x27;);
+  } else {
+    logRow_(userId, keyword, replyText, false, &#x27;&#x27;);
+  }
+}
+
+function jsonOutput_(obj) {
+  return ContentService.createTextOutput(JSON.stringify(obj))
+    .setMimeType(ContentService.MimeType.JSON);
+}
+
+function buildPrefilledFormLink_(baseUrl, entryId, userId) {
+  const sep = baseUrl.indexOf(&#x27;?&#x27;) === -1 ? &#x27;?&#x27; : &#x27;&amp;&#x27;;
+  return baseUrl + sep + entryId + &#x27;=&#x27; + encodeURIComponent(userId);
+}
+
+/* ============================================================
+ * Queue（記録と重複防止）
+ * ============================================================ */
+
+/**
+ * 同一ユーザー・同一キーワードが既に記録されていれば true。
+ * 送信済み・未送信・保留中を問わず、二度目は送らない。
+ */
+function alreadyHandled_(userId, keyword) {
+  const data = getQueueSheet_().getDataRange().getValues();
+  for (let i = 1; i &lt; data.length; i++) {
+    if (data[i][1] === userId &amp;&amp; data[i][2] === keyword) return true;
+  }
+  return false;
+}
+
+function logRow_(userId, keyword, replyText, sent, assignee) {
+  getQueueSheet_().appendRow([new Date(), userId, keyword, replyText, sent, assignee || &#x27;&#x27;]);
+}
+
+/**
+ * 定時実行：未送信の行を処理する。
+ * REPLY_MODE が &#x27;immediate&#x27; のときは送信漏れ（返信に失敗した行）の再送のみを担う。
+ *
+ *   E列(sent)がtrue      → スキップ
+ *   F列(担当者)に記入あり → 保留（スタッフ対応中）
+ *   それ以外              → プッシュ送信し、成功したらsentをtrueにする
+ */
+function processQueue() {
+  const lock = LockService.getScriptLock();
+  if (!lock.tryLock(30 * 1000)) {
+    Logger.log(&#x27;別の処理が実行中のため、今回はスキップしました。&#x27;);
+    return;
+  }
+
+  try {
+    const token = getChannelAccessToken_();
+    const sheet = getQueueSheet_();
+    const data = sheet.getDataRange().getValues();
+
+    for (let i = 1; i &lt; data.length; i++) {
+      const userId = data[i][1];
+      const keyword = data[i][2];
+      const replyText = data[i][3];
+      const sent = data[i][4];
+      const assignee = (data[i][5] || &#x27;&#x27;).toString().trim();
+
+      if (sent === true) continue;
+
+      if (assignee !== &#x27;&#x27;) {
+        Logger.log(&#x27;担当者対応中のため保留: &#x27; + userId + &#x27; / &#x27; + keyword + &#x27; / &#x27; + assignee);
+        continue;
+      }
+
+      const ok = pushMessage_(userId, replyText, token);
+      sheet.getRange(i + 1, 5).setValue(ok);
+      Logger.log(&#x27;定時処理 &#x27; + userId + &#x27; / &#x27; + keyword + &#x27; → &#x27; + ok);
+    }
+  } finally {
+    lock.releaseLock();
+  }
+}
+
+/* ============================================================
+ * 送信
+ * ============================================================ */
+
+/**
+ * replyToken を使った返信。無料枠を消費せず、即座に届く。
+ * 受信したメッセージへの応答は必ずこちらを使う。
+ */
+function replyMessage_(replyToken, text) {
+  if (!replyToken) return false;
+  const options = {
+    method: &#x27;post&#x27;,
+    contentType: &#x27;application/json&#x27;,
+    headers: { Authorization: &#x27;Bearer &#x27; + getChannelAccessToken_() },
+    payload: JSON.stringify({
+      replyToken: replyToken,
+      messages: [{ type: &#x27;text&#x27;, text: text }]
+    }),
+    muteHttpExceptions: true
+  };
+  const res = UrlFetchApp.fetch(&#x27;https://api.line.me/v2/bot/message/reply&#x27;, options);
+  const code = res.getResponseCode();
+  if (code !== 200) {
+    Logger.log(&#x27;返信に失敗 (HTTP &#x27; + code + &#x27;): &#x27; + res.getContentText());
+  }
+  return code === 200;
+}
+
+/**
+ * こちらから送るプッシュ。送信数の上限を消費するため、
+ * 受信への応答ではなくフォーム送信後の案内などに限って使う。
+ */
+function pushMessage_(userId, text, token) {
+  const options = {
+    method: &#x27;post&#x27;,
+    contentType: &#x27;application/json&#x27;,
+    headers: { Authorization: &#x27;Bearer &#x27; + (token || getChannelAccessToken_()) },
+    payload: JSON.stringify({
+      to: userId,
+      messages: [{ type: &#x27;text&#x27;, text: text }]
+    }),
+    muteHttpExceptions: true
+  };
+  const res = UrlFetchApp.fetch(&#x27;https://api.line.me/v2/bot/message/push&#x27;, options);
+  const code = res.getResponseCode();
+  if (code !== 200) {
+    Logger.log(&#x27;プッシュ送信に失敗 (HTTP &#x27; + code + &#x27;): &#x27; + res.getContentText());
+  }
+  return code === 200;
+}
+
+/* ============================================================
+ * フォーム送信時の処理
+ * ============================================================ */
+
+function onTrialFormSubmit(e) {
+  const userId = extractUserId_(e);
+  if (!userId) {
+    Logger.log(&#x27;userId取得失敗（シーン2）。フォームの「LINE ID」質問と、&#x27; +
+               &#x27;LINEが送るリンクの事前入力設定を確認してください。&#x27;);
+    return;
+  }
+  const lang = extractFormLanguage_(e);
+  const keyword = &#x27;scene2_after_trial_form_&#x27; + lang;
+  if (alreadyHandled_(userId, keyword)) {
+    Logger.log(&#x27;持ち物案内は送信済みのためスキップ: &#x27; + userId);
+    return;
+  }
+  const ok = pushMessage_(userId, SCENE2_AFTER_TRIAL_FORM[lang]);
+  logRow_(userId, keyword, SCENE2_AFTER_TRIAL_FORM[lang], ok, &#x27;&#x27;);
+}
+
+function onEnrollFormSubmitJaTicket(e) { handleEnrollFormSubmit_(e, &#x27;ja&#x27;); }
+function onEnrollFormSubmitJaMonthly(e) { handleEnrollFormSubmit_(e, &#x27;ja&#x27;); }
+function onEnrollFormSubmitSharedTicket(e) { handleEnrollFormSubmit_(e, extractFormLanguage_(e)); }
+function onEnrollFormSubmitSharedMonthly(e) { handleEnrollFormSubmit_(e, extractFormLanguage_(e)); }
+
+function handleEnrollFormSubmit_(e, lang) {
+  const userId = extractUserId_(e);
+  if (!userId) {
+    Logger.log(&#x27;userId取得失敗（シーン4・&#x27; + lang + &#x27;）。フォームの「LINE ID」質問を確認してください。&#x27;);
+    return;
+  }
+  const keyword = &#x27;scene4_welcome_&#x27; + lang;
+  if (alreadyHandled_(userId, keyword)) {
+    Logger.log(&#x27;入会案内は送信済みのためスキップ: &#x27; + userId);
+    return;
+  }
+  const ok = pushMessage_(userId, SCENE4_WELCOME[lang]);
+  logRow_(userId, keyword, SCENE4_WELCOME[lang], ok, &#x27;&#x27;);
+}
+
+/**
+ * フォーム回答からLINEユーザーIDを取り出す。
+ * 質問タイトルの表記ゆれに耐えるよう、複数の呼び方を許容する。
+ * 体験フォームの回答シートでは列名が「LINE ID」になっている。
+ */
+function extractUserId_(e) {
+  const values = (e &amp;&amp; e.namedValues) || {};
+  const candidates = [&#x27;システム用ID&#x27;, &#x27;system id&#x27;, &#x27;systemid&#x27;, &#x27;line id&#x27;, &#x27;lineid&#x27;, &#x27;line_id&#x27;];
+  const key = Object.keys(values).find(function (k) {
+    const norm = k.toLowerCase().replace(/\s+/g, &#x27; &#x27;).trim();
+    return candidates.some(function (c) { return norm.indexOf(c) !== -1; });
+  });
+  if (!key) return null;
+  const v = values[key][0];
+  return v ? v.toString().trim() : null;
+}
+
+/**
+ * フォーム内「Language」質問の回答から言語コードを判定する。
+ * 選択肢: 日本語 / English / ภาษาไทย
+ */
+function extractFormLanguage_(e) {
+  const values = (e &amp;&amp; e.namedValues) || {};
+  const key = Object.keys(values).find(function (k) {
+    return k.trim().toLowerCase() === &#x27;language&#x27;;
+  });
+  const answer = key ? values[key][0] : &#x27;&#x27;;
+
+  if (answer.indexOf(&#x27;日本語&#x27;) !== -1) return &#x27;ja&#x27;;
+  if (answer.indexOf(&#x27;ไทย&#x27;) !== -1) return &#x27;th&#x27;;
+  return &#x27;en&#x27;;
+}
+
+/* ============================================================
+ * スタッフ操作
+ * ============================================================ */
+
+function sendScene3Manual() {
+  const ui = SpreadsheetApp.getUi();
+
+  const userIdResp = ui.prompt(&#x27;LINEユーザーIDを入力してください&#x27;);
+  if (userIdResp.getSelectedButton() !== ui.Button.OK) return;
+  const userId = userIdResp.getResponseText().trim();
+  if (!userId) return;
+
+  const langResp = ui.prompt(&#x27;言語を入力してください（ja / en / th）&#x27;);
+  if (langResp.getSelectedButton() !== ui.Button.OK) return;
+  const lang = langResp.getResponseText().trim();
+  if (!SCENE3_AFTER_TRIAL_LESSON[lang]) {
+    ui.alert(&#x27;言語は ja / en / th のいずれかで入力してください。&#x27;);
+    return;
+  }
+
+  const forms = ENROLL_FORMS[lang];
+  const text = SCENE3_AFTER_TRIAL_LESSON[lang]
+    .replace(&#x27;{{TICKET_LINK}}&#x27;, buildPrefilledFormLink_(forms.ticket.url, forms.ticket.entryId, userId))
+    .replace(&#x27;{{MONTHLY_LINK}}&#x27;, buildPrefilledFormLink_(forms.monthly.url, forms.monthly.entryId, userId));
+
+  const ok = pushMessage_(userId, text);
+  if (ok) logRow_(userId, &#x27;scene3_after_trial_lesson_&#x27; + lang, text, true, &#x27;&#x27;);
+  ui.alert(ok ? &#x27;送信しました。&#x27; : &#x27;送信に失敗しました。ログを確認してください。&#x27;);
+}
+
+function addKnownContact() {
+  const ui = SpreadsheetApp.getUi();
+
+  const userIdResp = ui.prompt(&#x27;既存顧客として登録するLINEユーザーIDを入力してください&#x27;);
+  if (userIdResp.getSelectedButton() !== ui.Button.OK) return;
+  const userId = userIdResp.getResponseText().trim();
+  if (!userId) return;
+
+  const memoResp = ui.prompt(&#x27;メモ（任意・名前など。空欄でもOK）&#x27;);
+  const memo = memoResp.getSelectedButton() === ui.Button.OK ? memoResp.getResponseText().trim() : &#x27;&#x27;;
+
+  getKnownContactsSheet_().appendRow([userId, memo]);
+  ui.alert(&#x27;登録しました: &#x27; + userId);
+}
+
+function onOpen() {
+  SpreadsheetApp.getUi()
+    .createMenu(&#x27;ASAツール&#x27;)
+    .addItem(&#x27;シーン3を送信（体験レッスン後のお礼）&#x27;, &#x27;sendScene3Manual&#x27;)
+    .addItem(&#x27;既存顧客として登録（シーン1の自動案内を止める）&#x27;, &#x27;addKnownContact&#x27;)
+    .addSeparator()
+    .addItem(&#x27;設定を確認&#x27;, &#x27;checkProperties&#x27;)
+    .addToUi();
+}
+
+/* ============================================================
+ * セットアップ・診断
+ * ============================================================ */
+
+function setupHourlyTrigger() {
+  const oldFunctions = [
+    &#x27;process00&#x27;, &#x27;process02&#x27;, &#x27;process04&#x27;, &#x27;process06&#x27;,
+    &#x27;process08&#x27;, &#x27;process10&#x27;, &#x27;process12&#x27;, &#x27;process14&#x27;,
+    &#x27;process16&#x27;, &#x27;process18&#x27;, &#x27;process20&#x27;, &#x27;process22&#x27;,
+    &#x27;processQueue&#x27;
+  ];
+
+  ScriptApp.getProjectTriggers().forEach(function (t) {
+    if (oldFunctions.indexOf(t.getHandlerFunction()) !== -1) {
+      ScriptApp.deleteTrigger(t);
+    }
+  });
+
+  ScriptApp.newTrigger(&#x27;processQueue&#x27;).timeBased().everyHours(1).create();
+  Logger.log(&#x27;1時間おきのトリガーを登録しました（旧トリガーは削除済み）。&#x27;);
+}
+
+function setupFormTriggers() {
+  const targets = [
+    { formId: &#x27;1im84mMXHDZEfFxJFOUtpP3CzqA6zhefK6wSo5CfEr0E&#x27;, fn: &#x27;onTrialFormSubmit&#x27; },
+    { formId: &#x27;1EBIzXLmgD_5zR_Z5hjv5Mp9C1nfAvgdaBb7X69J8Lkw&#x27;, fn: &#x27;onEnrollFormSubmitJaTicket&#x27; },
+    { formId: &#x27;174nE6w8R2exFaul_tzw1gn4pguXjA_abNF5u7Q_t16M&#x27;, fn: &#x27;onEnrollFormSubmitJaMonthly&#x27; },
+    { formId: &#x27;1ryQ8Fy_nRmfnqpDv-Q-JK11r3xN3THSmkNQASLzakCg&#x27;, fn: &#x27;onEnrollFormSubmitSharedTicket&#x27; },
+    { formId: &#x27;14HrG7hB2DRMwVXnA6RPWULJXTP21Z9nxJPjR4gSIAuU&#x27;, fn: &#x27;onEnrollFormSubmitSharedMonthly&#x27; }
+  ];
+
+  targets.forEach(function (t) {
+    ScriptApp.getProjectTriggers().forEach(function (tr) {
+      if (tr.getHandlerFunction() === t.fn) ScriptApp.deleteTrigger(tr);
+    });
+    try {
+      const form = FormApp.openById(t.formId);
+      ScriptApp.newTrigger(t.fn).forForm(form).onFormSubmit().create();
+      Logger.log(&#x27;登録成功: &#x27; + t.fn + &#x27;（&#x27; + form.getTitle() + &#x27;）&#x27;);
+    } catch (err) {
+      Logger.log(&#x27;登録失敗: &#x27; + t.fn + &#x27;（&#x27; + t.formId + &#x27;）エラー: &#x27; + err.message);
+    }
+  });
+
+  Logger.log(&#x27;setupFormTriggers 完了。「登録成功」が5件出ているか確認してください。&#x27;);
+}
+
+/**
+ * 設定の確認。トークンは先頭と末尾のみ表示する。
+ */
+function checkProperties() {
+  const props = PropertiesService.getScriptProperties().getProperties();
+  const token = props[PROP_TOKEN];
+  const sheetId = props[PROP_SHEET_ID];
+
+  Logger.log(PROP_TOKEN + &#x27;: &#x27; +
+    (token ? token.slice(0, 4) + &#x27;...&#x27; + token.slice(-4) + &#x27;（&#x27; + token.length + &#x27;文字）&#x27; : &#x27;★未設定&#x27;));
+  Logger.log(PROP_SHEET_ID + &#x27;: &#x27; + (sheetId || &#x27;★未設定&#x27;));
+}
+
+function testSheetAccess() {
+  const data = getQueueSheet_().getDataRange().getValues();
+  Logger.log(&#x27;Queueシート アクセスOK。現在の行数: &#x27; + data.length);
+}
+
+function debugListSheetNames() {
+  const ss = getSpreadsheet_();
+  Logger.log(&#x27;スプレッドシート名: &#x27; + ss.getName());
+  ss.getSheets().forEach(function (s) {
+    Logger.log(&#x27;シート名: [&#x27; + s.getName() + &#x27;]（&#x27; + s.getName().length + &#x27;文字）&#x27;);
+  });
+}
+</code></pre></div>
+  </div>
+
+  <div class="panel" id="p-doc" role="tabpanel" aria-labelledby="t-doc">
+    <div class="doc"><h1>ASA LINE 自動応答（Google Apps Script）</h1>
+<p><code>Code.gs</code> は LINE 公式アカウントの自動応答スクリプト。Queue用スプレッドシートに</p>
+<p>バインドされた Apps Script プロジェクトにそのまま貼り付けて使う。</p>
+<p>このリポジトリは版管理のためのミラー。<strong>編集したら Apps Script 側にも反映すること。</strong></p>
+<hr>
+<h2>最優先：チャネルアクセストークンの再発行</h2>
+<p>修正前のコードには、チャネルアクセストークンが <strong>平文で5箇所</strong> 書かれていた</p>
+<p>（<code>setProperties</code> の <code>TOKEN</code> 定数、<code>processQueue</code> のログ出力、<code>checkProperties</code> の</p>
+<p>フォールバック値ほか）。値が外部に渡っているため、<strong>このトークンは失効させること。</strong></p>
+<ul>
+<li>LINE Developers → 対象チャネル → Messaging API設定 → チャネルアクセストークンを再発行</li>
+<li>GASエディタ → 左の歯車「プロジェクトの設定」→ スクリプト プロパティ に登録</li>
+</ul>
+<p>- キー <code>LINE_CHANNEL_ACCESS_TOKEN</code> … 新しいトークン</p>
+<p>- キー <code>QUEUE_SHEET_ID</code> … <code>1WGIH9RSUQYiohj9wT2yuk9Py8qOHUpMrYYxlnec8tFk</code></p>
+<ul>
+<li>コードには二度と書かない。<code>Code.gs</code> からは <code>setProperties()</code> 関数ごと削除済み</li>
+</ul>
+<hr>
+<h2>直した不具合</h2>
+<h3>1. スクリプトプロパティの読み方が間違っていた（これが原因で全体が停止）</h3>
+<pre class="blk"><code>// 修正前 — スプレッドシートIDを「キー」として渡していた
+const id = PropertiesService.getScriptProperties()
+             .getProperty(&#x27;1WGIH9RSUQYiohj9wT2yuk9Py8qOHUpMrYYxlnec8tFk&#x27;);</code></pre>
+<p><code>setProperties()</code> はこの値を <code>QUEUE_SHEET_ID</code> というキーで保存している。</p>
+<p>上の呼び方では <code>null</code> が返り、<code>SpreadsheetApp.openById(null)</code> が例外を投げる。</p>
+<p><code>getQueueSheet_()</code> と <code>getKnownContactsSheet_()</code> の両方が同じ間違いをしていたため、</p>
+<p><strong>キューへの追加も定時送信も、すべて例外で止まっていた。</strong> 同じファイル内の</p>
+<p><code>debugListSheetNames()</code> だけは正しく <code>&#x27;QUEUE_SHEET_ID&#x27;</code> を使っており、</p>
+<p>書き換えの取りこぼしだったことが分かる。</p>
+<p>修正：キー名を定数 <code>PROP_SHEET_ID</code> / <code>PROP_TOKEN</code> に集約し、未設定なら</p>
+<p>何が足りないかを明示した例外を投げるようにした。</p>
+<h3>2. フォームからLINEユーザーIDを取り出せなかった</h3>
+<pre class="blk"><code>// 修正前 — &#x27;システム用ID&#x27; と &#x27;system id&#x27; しか探していない
+return k.indexOf(&#x27;システム用ID&#x27;) !== -1 || k.toLowerCase().indexOf(&#x27;system id&#x27;) !== -1;</code></pre>
+<p>体験フォームの回答シートの列名は実際には <strong><code>LINE ID</code></strong>。一致しないので</p>
+<p><code>extractUserId_</code> が <code>null</code> を返し、<strong>シーン2（持ち物案内）は一度も送られていなかった。</strong></p>
+<p>修正：<code>システム用ID</code> / <code>system id</code> / <code>LINE ID</code> / <code>line_id</code> などの表記ゆれを許容。</p>
+<h3>3. 問い合わせへの返信が最大1時間遅れていた</h3>
+<p>シーン1はキューに積まれ、1時間おきの <code>processQueue</code> で送られていた。</p>
+<p>体験の問い合わせに1時間沈黙するのは、そのまま申込率に響く。</p>
+<p>7月にLINEへ6名から問い合わせがありながら体験申込が0件だったことと無関係ではない。</p>
+<p>修正：<code>REPLY_MODE = &#x27;immediate&#x27;</code> を既定にし、<strong>受信したその場で返信</strong>するようにした。</p>
+<p>スタッフが全件を事前確認したい運用に戻す場合は <code>&#x27;queue&#x27;</code> に変えるだけでよい。</p>
+<h3>4. プッシュ送信で無料枠を消費していた</h3>
+<p>すべての送信が <code>/message/push</code> だった。受信メッセージへの応答は <code>replyToken</code> を</p>
+<p>使った <code>/message/reply</code> で送れば<strong>送信数の上限を消費しない</strong>。</p>
+<p>修正：受信への応答は <code>replyMessage_()</code>、フォーム送信後の案内など</p>
+<p>こちらから送るものだけ <code>pushMessage_()</code> を使う。</p>
+<h3>5. 持ち物案内が二重に送られ得た</h3>
+<p>利用者が「完了しました」と送った場合と、フォーム送信トリガーが動いた場合の</p>
+<p>両方でシーン2が送られていた。修正：どちらの経路も <code>alreadyHandled_()</code> を通す。</p>
+<h3>6. エラーで後続のイベントが落ちていた</h3>
+<p><code>events.forEach</code> の中で例外が出ると、同じリクエストに含まれる残りのイベントが</p>
+<p>処理されなかった。修正：1件ずつ <code>try/catch</code> で囲んだ。</p>
+<hr>
+<h2>加えた機能</h2>
+<p><strong>言語の記憶（<code>UserLang</code> シート）</strong></p>
+<p>文字種だけで判定すると、タイ在住の方が英語で書いた瞬間に英語扱いになる。</p>
+<p>一度でもタイ語でやり取りした相手は、以後タイ語で応対する。</p>
+<p>「日本語」「English」「ภาษาไทย」と送れば手動で切り替えられる。</p>
+<p><strong>人が対応すべき内容の切り分け</strong></p>
+<p>返金・解約・退会・クレーム・怪我・値引きに触れるメッセージは自動で答えず、</p>
+<p>3言語で「担当者からご連絡します」と返し、Queue の担当者欄に <code>要対応</code> を立てる。</p>
+<p>子どもの習い事で、料金や安全に関わる話を推測で答えさせないための線引き。</p>
+<p><strong>キーワードの拡充</strong></p>
+<p>タイ語は <code>ทดลอง</code> <code>สมัคร</code> の2語しかなく、「สนใจ（興味があります）」のような</p>
+<p>自然な問い合わせに反応できなかった。英語も同様。3言語とも実際の言い回しを追加した。</p>
+<hr>
+<h2>セットアップ手順</h2>
+<ul>
+<li>スクリプトプロパティに <code>LINE_CHANNEL_ACCESS_TOKEN</code> と <code>QUEUE_SHEET_ID</code> を設定</li>
+<li><code>checkProperties()</code> を実行し、両方が表示されることを確認</li>
+<li><code>testSheetAccess()</code> を実行して権限を承認</li>
+<li>ウェブアプリとしてデプロイし、そのURLを LINE Developers の Webhook URL に登録</li>
+<li><code>setupFormTriggers()</code> を実行（「登録成功」が5件出ることを確認）</li>
+<li><code>setupHourlyTrigger()</code> を実行（送信漏れの再送用。即時返信でも保険として残す）</li>
+</ul>
+<hr>
+<h2>動作確認</h2>
+<p><strong>先に異常系から確認すること。</strong></p>
+<ul>
+<li>「返金してほしい」を3言語で送る → 自動回答せず、担当者欄に <code>要対応</code> が立つ</li>
+<li>「体験を希望します」を日本語・英語・タイ語で送る → その言語で即座に返信が来る</li>
+<li>同じ人がもう一度同じことを送る → 二度目は送られない</li>
+<li>一度タイ語で会話した人が英語で送る → タイ語のまま応対される</li>
+<li>体験フォームを送信 → 持ち物案内が届き、<code>LINE ID</code> 列に値が入っている</li>
+<li>フォーム送信後に「完了しました」と送る → 持ち物案内は重複しない</li>
+</ul>
+<hr>
+<h2>未対応</h2>
+<ul>
+<li><strong>タイ語の文体</strong>：<code>ครับ</code>（男性話者）で統一されていたため <code>ค่ะ/ครับ</code> に変更したが、</li>
+</ul>
+<p>アカデミー公式としてどう名乗るかは決めの問題。現地スタッフに一度確認すること。</p>
+<ul>
+<li><strong>タイ語の入会フォーム</strong>が未作成で、英語フォームを共用している。</li>
+<li><strong>定型外の質問への回答</strong>（Claude API）は未実装。現在はキーワードに当たらなければ無反応。</li>
+<li><code>setupFormTriggers()</code> が参照する日本語入会フォーム2件のIDは、修正前のコードから</li>
+</ul>
+<p>そのまま引き継いでいる。実行時のログで「登録成功」が出るか要確認。</p></div>
+  </div>
+
+</div>
+
+<script>
+  const SOURCE = "/**\n * Advance Sports Academy \u2014 LINE \u81ea\u52d5\u5fdc\u7b54\uff08\u65e5\u672c\u8a9e / English / \u0e20\u0e32\u0e29\u0e32\u0e44\u0e17\u0e22\uff09\n *\n * ============================================================\n * \u8a2d\u5b9a\uff1a\u30b9\u30af\u30ea\u30d7\u30c8\u30d7\u30ed\u30d1\u30c6\u30a3\u306b\u4ee5\u4e0b\u306e\u300c\u30ad\u30fc\u300d\u3067\u4fdd\u5b58\u3059\u308b\n * ============================================================\n *   LINE_CHANNEL_ACCESS_TOKEN \u2026 LINE\u30c1\u30e3\u30cd\u30eb\u30a2\u30af\u30bb\u30b9\u30c8\u30fc\u30af\u30f3\n *   QUEUE_SHEET_ID            \u2026 \u30ad\u30e5\u30fc\u7528\u30b9\u30d7\u30ec\u30c3\u30c9\u30b7\u30fc\u30c8\u306eID\n *\n * \u2605 \u30c8\u30fc\u30af\u30f3\u3084\u30b7\u30fc\u30c8ID\u3092\u3053\u306e\u30b3\u30fc\u30c9\u306b\u76f4\u63a5\u66f8\u304b\u306a\u3044\u3053\u3068\u3002\n *   \u30b9\u30af\u30ea\u30d7\u30c8\u30d7\u30ed\u30d1\u30c6\u30a3\u306b\u306e\u307f\u4fdd\u5b58\u3059\u308b\uff08GAS\u30a8\u30c7\u30a3\u30bf\u5de6\u306e\u6b6f\u8eca \u2192\n *   \u30d7\u30ed\u30b8\u30a7\u30af\u30c8\u306e\u8a2d\u5b9a \u2192 \u30b9\u30af\u30ea\u30d7\u30c8 \u30d7\u30ed\u30d1\u30c6\u30a3\uff09\u3002\n *\n * ============================================================\n * \u30b7\u30fc\u30c8\u69cb\u6210\n * ============================================================\n *   Queue         A:timestamp B:userId C:keyword D:replyText E:sent F:\u62c5\u5f53\u8005\n *   KnownContacts A:userId    B:memo\n *   UserLang      A:userId    B:lang   C:updatedAt\n *\n *   \u2605 Queue \u306e F\u5217\u300c\u62c5\u5f53\u8005\u300d\n *     \u30b9\u30bf\u30c3\u30d5\u304c\u624b\u52d5\u5bfe\u5fdc\u3059\u308b\u6848\u4ef6\u306f\u62c5\u5f53\u8005\u540d\u3092\u8a18\u5165\u3059\u308b\u3002\u8a18\u5165\u304c\u3042\u308b\u884c\u306f\n *     \u81ea\u52d5\u9001\u4fe1\u3092\u30b9\u30ad\u30c3\u30d7\uff08\u4fdd\u7559\uff09\u3059\u308b\u3002\u7a7a\u6b04\u306b\u623b\u305b\u3070\u6b21\u56de\u5b9f\u884c\u3067\u9001\u4fe1\u3055\u308c\u308b\u3002\n */\n\n/* ============================================================\n * \u57fa\u672c\u8a2d\u5b9a\n * ============================================================ */\n\n/**\n * \u8fd4\u4fe1\u306e\u30bf\u30a4\u30df\u30f3\u30b0\u3002\n *   'immediate' \u2026 \u554f\u3044\u5408\u308f\u305b\u3092\u53d7\u3051\u305f\u77ac\u9593\u306b\u8fd4\u4fe1\u3059\u308b\uff08\u63a8\u5968\uff09\n *   'queue'     \u2026 Queue\u306b\u7a4d\u307f\u3001\u5b9a\u6642\u5b9f\u884c(processQueue)\u3067\u307e\u3068\u3081\u3066\u9001\u308b\n *\n * 'queue' \u3060\u3068\u6700\u59271\u6642\u9593\u304a\u5f85\u305f\u305b\u3059\u308b\u3053\u3068\u306b\u306a\u308b\u3002\u4f53\u9a13\u306e\u554f\u3044\u5408\u308f\u305b\u306f\n * \u53cd\u5fdc\u901f\u5ea6\u304c\u305d\u306e\u307e\u307e\u7533\u8fbc\u7387\u306b\u52b9\u304f\u305f\u3081\u3001\u65e2\u5b9a\u3092 'immediate' \u306b\u3057\u3066\u3044\u308b\u3002\n * \u30b9\u30bf\u30c3\u30d5\u304c\u5168\u4ef6\u3092\u4e8b\u524d\u78ba\u8a8d\u3057\u305f\u3044\u5834\u5408\u306e\u307f 'queue' \u306b\u623b\u3059\u3053\u3068\u3002\n */\nconst REPLY_MODE = 'immediate';\n\nconst PROP_TOKEN = 'LINE_CHANNEL_ACCESS_TOKEN';\nconst PROP_SHEET_ID = 'QUEUE_SHEET_ID';\n\nfunction getChannelAccessToken_() {\n  const token = PropertiesService.getScriptProperties().getProperty(PROP_TOKEN);\n  if (!token) {\n    throw new Error(\n      '\u30b9\u30af\u30ea\u30d7\u30c8\u30d7\u30ed\u30d1\u30c6\u30a3 ' + PROP_TOKEN + ' \u304c\u672a\u8a2d\u5b9a\u3067\u3059\u3002' +\n      'GAS\u30a8\u30c7\u30a3\u30bf \u2192 \u30d7\u30ed\u30b8\u30a7\u30af\u30c8\u306e\u8a2d\u5b9a \u2192 \u30b9\u30af\u30ea\u30d7\u30c8 \u30d7\u30ed\u30d1\u30c6\u30a3 \u3067\u8a2d\u5b9a\u3057\u3066\u304f\u3060\u3055\u3044\u3002'\n    );\n  }\n  return token;\n}\n\nfunction getSpreadsheet_() {\n  const id = PropertiesService.getScriptProperties().getProperty(PROP_SHEET_ID);\n  if (!id) {\n    throw new Error(\n      '\u30b9\u30af\u30ea\u30d7\u30c8\u30d7\u30ed\u30d1\u30c6\u30a3 ' + PROP_SHEET_ID + ' \u304c\u672a\u8a2d\u5b9a\u3067\u3059\u3002' +\n      '\u30ad\u30e5\u30fc\u7528\u30b9\u30d7\u30ec\u30c3\u30c9\u30b7\u30fc\u30c8\u306eID\u3092\u8a2d\u5b9a\u3057\u3066\u304f\u3060\u3055\u3044\u3002'\n    );\n  }\n  return SpreadsheetApp.openById(id);\n}\n\nfunction getOrCreateSheet_(name, header) {\n  const ss = getSpreadsheet_();\n  let sheet = ss.getSheetByName(name);\n  if (!sheet) {\n    sheet = ss.insertSheet(name);\n    sheet.appendRow(header);\n  }\n  return sheet;\n}\n\nfunction getQueueSheet_() {\n  return getOrCreateSheet_('Queue',\n    ['timestamp', 'userId', 'keyword', 'replyText', 'sent', '\u62c5\u5f53\u8005']);\n}\n\nfunction getKnownContactsSheet_() {\n  return getOrCreateSheet_('KnownContacts', ['userId', 'memo']);\n}\n\nfunction getUserLangSheet_() {\n  return getOrCreateSheet_('UserLang', ['userId', 'lang', 'updatedAt']);\n}\n\nfunction isKnownContact_(userId) {\n  const data = getKnownContactsSheet_().getDataRange().getValues();\n  for (let i = 1; i < data.length; i++) {\n    if (data[i][0] === userId) return true;\n  }\n  return false;\n}\n\n/* ============================================================\n * \u8a00\u8a9e\u5224\u5b9a\n * ============================================================ */\n\n/**\n * \u660e\u793a\u7684\u306a\u8a00\u8a9e\u5207\u66ff\u306e\u5408\u56f3\u3002\u5229\u7528\u8005\u304c\u3053\u308c\u3092\u9001\u308c\u3070\u4ee5\u5f8c\u305d\u306e\u8a00\u8a9e\u3067\u5fdc\u5bfe\u3059\u308b\u3002\n */\nconst LANG_SWITCH = [\n  { lang: 'ja', words: ['\u65e5\u672c\u8a9e'] },\n  { lang: 'en', words: ['English', 'english'] },\n  { lang: 'th', words: ['\u0e20\u0e32\u0e29\u0e32\u0e44\u0e17\u0e22', '\u0e44\u0e17\u0e22'] }\n];\n\nfunction getStoredLang_(userId) {\n  const data = getUserLangSheet_().getDataRange().getValues();\n  for (let i = 1; i < data.length; i++) {\n    if (data[i][0] === userId) return data[i][1];\n  }\n  return null;\n}\n\nfunction saveLang_(userId, lang) {\n  const sheet = getUserLangSheet_();\n  const data = sheet.getDataRange().getValues();\n  for (let i = 1; i < data.length; i++) {\n    if (data[i][0] === userId) {\n      if (data[i][1] !== lang) {\n        sheet.getRange(i + 1, 2).setValue(lang);\n        sheet.getRange(i + 1, 3).setValue(new Date());\n      }\n      return;\n    }\n  }\n  sheet.appendRow([userId, lang, new Date()]);\n}\n\n/**\n * \u8a00\u8a9e\u3092\u6c7a\u3081\u308b\u3002\u5f37\u3044\u624b\u304c\u304b\u308a\u304b\u3089\u9806\u306b\u898b\u308b\u3002\n *   1. \u660e\u793a\u7684\u306a\u5207\u66ff\u306e\u5408\u56f3\uff08\u300c\u65e5\u672c\u8a9e\u300d\u300cEnglish\u300d\u300c\u0e20\u0e32\u0e29\u0e32\u0e44\u0e17\u0e22\u300d\uff09\n *   2. \u6587\u5b57\u7a2e\uff08\u30bf\u30a4\u6587\u5b57 \u2192 th\u3001\u304b\u306a \u2192 ja\uff09\n *   3. \u904e\u53bb\u306b\u3053\u306e\u5229\u7528\u8005\u3068\u4f7f\u3063\u305f\u8a00\u8a9e\n *   4. \u6f22\u5b57\u306e\u307f \u2192 ja\n *   5. \u3069\u308c\u3067\u3082\u306a\u3051\u308c\u3070 en\n *\n * 3 \u3092 4 \u3088\u308a\u5148\u306b\u898b\u308b\u306e\u304c\u8981\u70b9\u3002\u30bf\u30a4\u5728\u4f4f\u306e\u65b9\u304c\u82f1\u8a9e\u3067\u66f8\u3044\u3066\u304f\u308b\u3053\u3068\u306f\u591a\u304f\u3001\n * \u4e00\u5ea6\u30bf\u30a4\u8a9e\u3067\u4f1a\u8a71\u3057\u305f\u76f8\u624b\u306b\u306f\u4ee5\u5f8c\u3082\u30bf\u30a4\u8a9e\u3067\u5fdc\u5bfe\u3057\u305f\u3044\u3002\n */\nfunction detectLanguage_(text, userId) {\n  for (const entry of LANG_SWITCH) {\n    for (const w of entry.words) {\n      if (text.indexOf(w) !== -1) return entry.lang;\n    }\n  }\n  if (/[\u0e00-\u0e7f]/.test(text)) return 'th';\n  if (/[\u3040-\u30ff]/.test(text)) return 'ja';\n\n  const stored = userId ? getStoredLang_(userId) : null;\n  if (stored) return stored;\n\n  if (/[\u4e00-\u9fff]/.test(text)) return 'ja';\n  return 'en';\n}\n\n/* ============================================================\n * \u30b7\u30fc\u30f31\uff1a\u4f53\u9a13\u30ec\u30c3\u30b9\u30f3\u306e\u554f\u3044\u5408\u308f\u305b\n * ============================================================ */\n\nconst TRIAL_FORM = {\n  baseUrl: 'https://forms.gle/b9WfqjbGprrhJZJeA',\n  entryId: 'entry.370446376'\n};\n\nconst SCENE1_TRIAL_INQUIRY = {\n  ja: {\n    keywords: [\n      '\u306f\u3058\u3081\u307e\u3057\u3066', '\u521d\u3081\u307e\u3057\u3066', '\u3053\u3093\u306b\u3061\u306f', '\u65e5\u672c\u8a9e',\n      '\u4f53\u9a13', '\u305f\u3044\u3051\u3093', '\u30c8\u30e9\u30a4\u30a2\u30eb', '\u7533\u3057\u8fbc\u307f', '\u7533\u8fbc', '\u3082\u3046\u3057\u3053\u307f',\n      '\u5165\u4f1a', '\u30ec\u30c3\u30b9\u30f3', '\u30af\u30e9\u30b9', '\u898b\u5b66', '\u7fd2\u3044\u4e8b',\n      '\u30b5\u30c3\u30ab\u30fc', '\u4f53\u64cd', '\u9678\u4e0a', '\u6559\u5ba4'\n    ],\n    body:\n      '\u521d\u3081\u307e\u3057\u3066\uff01\\n' +\n      '\u304a\u554f\u3044\u5408\u308f\u305b\u3044\u305f\u3060\u304d\u3001\u3042\u308a\u304c\u3068\u3046\u3054\u3056\u3044\u307e\u3059\u3002\\n' +\n      '\u4f53\u9a13\u3092\u304a\u7533\u3057\u8fbc\u307f\u306e\u5834\u5408\u306f\u4e0b\u8a18\u30ea\u30f3\u30af\u3088\u308a\u7533\u3057\u8fbc\u307f\u30d5\u30a9\u30fc\u30e0\u306b\u3054\u8a18\u5165\u3044\u305f\u3060\u3051\u307e\u3059\u3068\u5e78\u3044\u3067\u3059\u3002\\n\\n' +\n      '\u4f53\u9a13\u304a\u7533\u3057\u8fbc\u307f\u30d5\u30a9\u30fc\u30e0\\n{{FORM_LINK}}\\n\\n' +\n      '\u3054\u4e0d\u660e\u306a\u70b9\u304c\u3054\u3056\u3044\u307e\u3057\u305f\u3089\u3001\u3044\u3064\u3067\u3082\u304a\u6c17\u8efd\u306b\u304a\u554f\u3044\u5408\u308f\u305b\u304f\u3060\u3055\u3044\u3002\\n\\n' +\n      '\u3088\u308d\u3057\u304f\u304a\u9858\u3044\u3044\u305f\u3057\u307e\u3059\u3002\\nAdvance Sports Academy'\n  },\n  en: {\n    // \u7167\u5408\u306f containsKeyword_ \u304c\u5927\u6587\u5b57\u5c0f\u6587\u5b57\u3092\u7121\u8996\u3057\u3001\u5358\u8a9e\u5883\u754c\u3067\u884c\u3046\n    keywords: [\n      'English', 'hello', 'hi', 'trial', 'apply', 'application',\n      'join', 'class', 'classes', 'lesson', 'lessons', 'enroll', 'register',\n      'interested', 'football', 'soccer', 'gymnastics', 'athletics', 'academy',\n      'price', 'fee', 'fees', 'cost', 'schedule'\n    ],\n    body:\n      'Thanks for reaching out about a trial lesson!\\n' +\n      'Please fill out the application form at the link below.\\n\\n' +\n      '{{FORM_LINK}}\\n\\n' +\n      'If you have any questions, feel free to ask anytime.\\n' +\n      'Advance Sports Academy'\n  },\n  th: {\n    keywords: [\n      '\u0e20\u0e32\u0e29\u0e32\u0e44\u0e17\u0e22', '\u0e44\u0e17\u0e22', '\u0e2a\u0e27\u0e31\u0e2a\u0e14\u0e35', '\u0e17\u0e14\u0e25\u0e2d\u0e07', '\u0e2a\u0e21\u0e31\u0e04\u0e23', '\u0e2a\u0e19\u0e43\u0e08', '\u0e40\u0e23\u0e35\u0e22\u0e19',\n      '\u0e04\u0e25\u0e32\u0e2a', '\u0e23\u0e32\u0e04\u0e32', '\u0e04\u0e48\u0e32\u0e40\u0e23\u0e35\u0e22\u0e19', '\u0e15\u0e32\u0e23\u0e32\u0e07', '\u0e1f\u0e38\u0e15\u0e1a\u0e2d\u0e25', '\u0e22\u0e34\u0e21\u0e19\u0e32\u0e2a\u0e15\u0e34\u0e01', '\u0e01\u0e23\u0e35\u0e11\u0e32'\n    ],\n    body:\n      '\u0e02\u0e2d\u0e1a\u0e04\u0e38\u0e13\u0e17\u0e35\u0e48\u0e2a\u0e2d\u0e1a\u0e16\u0e32\u0e21\u0e40\u0e01\u0e35\u0e48\u0e22\u0e27\u0e01\u0e31\u0e1a\u0e04\u0e25\u0e32\u0e2a\u0e17\u0e14\u0e25\u0e2d\u0e07\u0e40\u0e23\u0e35\u0e22\u0e19\u0e04\u0e48\u0e30/\u0e04\u0e23\u0e31\u0e1a\\n' +\n      '\u0e01\u0e23\u0e38\u0e13\u0e32\u0e01\u0e23\u0e2d\u0e01\u0e41\u0e1a\u0e1a\u0e1f\u0e2d\u0e23\u0e4c\u0e21\u0e43\u0e1a\u0e2a\u0e21\u0e31\u0e04\u0e23\u0e1c\u0e48\u0e32\u0e19\u0e25\u0e34\u0e07\u0e01\u0e4c\u0e14\u0e49\u0e32\u0e19\u0e25\u0e48\u0e32\u0e07\u0e19\u0e35\u0e49\u0e44\u0e14\u0e49\u0e40\u0e25\u0e22\u0e04\u0e48\u0e30/\u0e04\u0e23\u0e31\u0e1a\\n\\n' +\n      '{{FORM_LINK}}\\n\\n' +\n      '\u0e2b\u0e32\u0e01\u0e21\u0e35\u0e02\u0e49\u0e2d\u0e2a\u0e07\u0e2a\u0e31\u0e22\u0e43\u0e14\u0e46 \u0e2a\u0e32\u0e21\u0e32\u0e23\u0e16\u0e2a\u0e2d\u0e1a\u0e16\u0e32\u0e21\u0e44\u0e14\u0e49\u0e15\u0e25\u0e2d\u0e14\u0e40\u0e27\u0e25\u0e32\u0e19\u0e30\u0e04\u0e30/\u0e04\u0e23\u0e31\u0e1a\\n' +\n      'Advance Sports Academy'\n  }\n};\n\n/* ============================================================\n * \u30d5\u30a9\u30fc\u30e0\u5165\u529b\u5b8c\u4e86\u306e\u7533\u544a\u30e1\u30c3\u30bb\u30fc\u30b8\n * ============================================================ */\n\nconst FORM_COMPLETION_KEYWORDS = {\n  ja: ['\u5b8c\u4e86', '\u9001\u4fe1\u3057\u307e\u3057\u305f', '\u9001\u308a\u307e\u3057\u305f', '\u63d0\u51fa\u3057\u307e\u3057\u305f', '\u5165\u529b\u3057\u307e\u3057\u305f', '\u8a18\u5165\u3057\u307e\u3057\u305f'],\n  en: ['completed', 'submitted', 'finished the form', 'done with the form', 'filled out', 'filled in'],\n  th: ['\u0e40\u0e2a\u0e23\u0e47\u0e08', '\u0e2a\u0e48\u0e07\u0e41\u0e25\u0e49\u0e27', '\u0e01\u0e23\u0e2d\u0e01\u0e41\u0e25\u0e49\u0e27']\n};\n\nfunction isFormCompletionMessage_(text, lang) {\n  const keywords = FORM_COMPLETION_KEYWORDS[lang] || [];\n  return keywords.some(function (kw) { return containsKeyword_(text, kw); });\n}\n\n/* ============================================================\n * \u4eba\u304c\u5bfe\u5fdc\u3059\u3079\u304d\u554f\u3044\u5408\u308f\u305b\n * ============================================================\n * \u6599\u91d1\u4ea4\u6e09\u30fb\u8fd4\u91d1\u30fb\u9000\u4f1a\u30fb\u30af\u30ec\u30fc\u30e0\u30fb\u602a\u6211\u306a\u3069\u3001\u81ea\u52d5\u3067\u7b54\u3048\u308b\u3068\u5b9f\u5bb3\u304c\u51fa\u308b\u8a71\u3002\n * \u81ea\u52d5\u8fd4\u4fe1\u305b\u305a\u3001Queue \u306e\u62c5\u5f53\u8005\u6b04\u306b\u5370\u3092\u4ed8\u3051\u3066\u30b9\u30bf\u30c3\u30d5\u306b\u56de\u3059\u3002\n */\n\nconst ESCALATION_KEYWORDS = [\n  // \u65e5\u672c\u8a9e\n  '\u8fd4\u91d1', '\u89e3\u7d04', '\u9000\u4f1a', '\u3084\u3081\u305f\u3044', '\u8f9e\u3081\u305f\u3044', '\u30ad\u30e3\u30f3\u30bb\u30eb', '\u82e6\u60c5', '\u30af\u30ec\u30fc\u30e0',\n  '\u602a\u6211', '\u3051\u304c', '\u30b1\u30ac', '\u4e8b\u6545', '\u6551\u6025', '\u75c5\u9662', '\u8fd4\u3057\u3066\u307b\u3057\u3044', '\u5024\u5f15\u304d', '\u5272\u5f15',\n  // English\n  'refund', 'cancel', 'quit', 'withdraw', 'complaint', 'injury', 'injured',\n  'accident', 'hospital', 'discount', 'money back',\n  // \u0e44\u0e17\u0e22\n  '\u0e04\u0e37\u0e19\u0e40\u0e07\u0e34\u0e19', '\u0e22\u0e01\u0e40\u0e25\u0e34\u0e01', '\u0e25\u0e32\u0e2d\u0e2d\u0e01', '\u0e23\u0e49\u0e2d\u0e07\u0e40\u0e23\u0e35\u0e22\u0e19', '\u0e1a\u0e32\u0e14\u0e40\u0e08\u0e47\u0e1a', '\u0e2d\u0e38\u0e1a\u0e31\u0e15\u0e34\u0e40\u0e2b\u0e15\u0e38', '\u0e2a\u0e48\u0e27\u0e19\u0e25\u0e14'\n];\n\n/**\n * \u30ad\u30fc\u30ef\u30fc\u30c9\u7167\u5408\u3002\n *\n * \u82f1\u6570\u5b57\u306e\u30ad\u30fc\u30ef\u30fc\u30c9\u306f\u5358\u8a9e\u5883\u754c\u3067\u7167\u5408\u3059\u308b\u3002\u90e8\u5206\u4e00\u81f4\u306b\u3059\u308b\u3068\n * \"quite good\" \u304c \"quit\"\uff08\u9000\u4f1a\uff09\u306b\u3001\"application\" \u304c \"apply\" \u306b\n * \u8aa4\u3063\u3066\u5f15\u3063\u304b\u304b\u308b\u3002\u65e5\u672c\u8a9e\u3068\u30bf\u30a4\u8a9e\u306f\u8a9e\u3092\u7a7a\u767d\u3067\u533a\u5207\u3089\u306a\u3044\u305f\u3081\u90e8\u5206\u4e00\u81f4\u3067\u7167\u5408\u3059\u308b\u3002\n */\nfunction containsKeyword_(text, keyword) {\n  if (/^[\\x20-\\x7E]+$/.test(keyword)) {\n    const escaped = keyword.replace(/[.*+?^${}()|[\\]\\\\]/g, '\\\\$&');\n    return new RegExp('(^|[^A-Za-z])' + escaped + '([^A-Za-z]|$)', 'i').test(text);\n  }\n  return text.indexOf(keyword) !== -1;\n}\n\nfunction needsHuman_(text) {\n  return ESCALATION_KEYWORDS.some(function (kw) {\n    return containsKeyword_(text, kw);\n  });\n}\n\nconst HUMAN_HANDOFF_REPLY = {\n  ja: '\u304a\u554f\u3044\u5408\u308f\u305b\u3042\u308a\u304c\u3068\u3046\u3054\u3056\u3044\u307e\u3059\u3002\\n' +\n      '\u5185\u5bb9\u3092\u78ba\u8a8d\u306e\u3046\u3048\u3001\u62c5\u5f53\u8005\u3088\u308a\u6539\u3081\u3066\u3054\u9023\u7d61\u3044\u305f\u3057\u307e\u3059\u3002\\n' +\n      '\u5c11\u3005\u304a\u5f85\u3061\u304f\u3060\u3055\u3044\u307e\u305b\u3002\\n\\nAdvance Sports Academy',\n  en: 'Thank you for your message.\\n' +\n      'A member of our team will review it and get back to you shortly.\\n\\n' +\n      'Advance Sports Academy',\n  th: '\u0e02\u0e2d\u0e1a\u0e04\u0e38\u0e13\u0e2a\u0e33\u0e2b\u0e23\u0e31\u0e1a\u0e02\u0e49\u0e2d\u0e04\u0e27\u0e32\u0e21\u0e04\u0e48\u0e30/\u0e04\u0e23\u0e31\u0e1a\\n' +\n      '\u0e17\u0e35\u0e21\u0e07\u0e32\u0e19\u0e08\u0e30\u0e15\u0e23\u0e27\u0e08\u0e2a\u0e2d\u0e1a\u0e41\u0e25\u0e30\u0e15\u0e34\u0e14\u0e15\u0e48\u0e2d\u0e01\u0e25\u0e31\u0e1a\u0e42\u0e14\u0e22\u0e40\u0e23\u0e47\u0e27\u0e17\u0e35\u0e48\u0e2a\u0e38\u0e14\u0e04\u0e48\u0e30/\u0e04\u0e23\u0e31\u0e1a\\n\\n' +\n      'Advance Sports Academy'\n};\n\n/* ============================================================\n * \u30b7\u30fc\u30f32\uff1a\u4f53\u9a13\u30d5\u30a9\u30fc\u30e0\u9001\u4fe1\u5f8c\uff08\u6301\u3061\u7269\u6848\u5185\uff09\n * ============================================================ */\n\nconst SCENE2_AFTER_TRIAL_FORM = {\n  ja:\n    '\u30d5\u30a9\u30fc\u30e0\u306e\u5165\u529b\u3042\u308a\u304c\u3068\u3046\u3054\u3056\u3044\u307e\u3059\u3002\\n\\n' +\n    '\u5f53\u65e5\u306f\u8d70\u308b\u30e1\u30cb\u30e5\u30fc\u304c\u591a\u3044\u305f\u3081\u3001\u6700\u5f8c\u307e\u3067\u3084\u308a\u304d\u308c\u306a\u3044\u5834\u5408\u304c\u3054\u3056\u3044\u307e\u3059\u304c\\n' +\n    '\u305d\u306e\u969b\u306f\u30b9\u30bf\u30c3\u30d5\u306e\u65b9\u3067\u30b5\u30dd\u30fc\u30c8\u3057\u307e\u3059\u306e\u3067\u3054\u5b89\u5fc3\u304f\u3060\u3055\u3044\u3002\\n\\n' +\n    '\u5f53\u65e5\u306e\u6301\u3061\u7269\u3053\u3061\u3089\u306b\u306a\u308a\u307e\u3059\u3002\\n\\n' +\n    '\u30fb\u904b\u52d5\u7740\uff06\u7740\u66ff\u3048\\n\u30fb\u30bf\u30aa\u30eb\\n\u30fb\u6c34\u5206\uff08\u591a\u3081\u306b\uff09\\n' +\n    '\u30fb\u30b7\u30e5\u30fc\u30ba\uff08\u666e\u6bb5\u306f\u3044\u3066\u3044\u308b\u7269\u3067\u53ef\uff09*\u30b9\u30d1\u30a4\u30af\u7981\u6b62\\n' +\n    '\u30fb\u4f53\u64cd\u30af\u30e9\u30b9\u306e\u304a\u5b50\u69d8\u306f\u88f8\u8db3\u307e\u305f\u306f\u9774\u4e0b\\n\\n' +\n    '\u3088\u308d\u3057\u304f\u304a\u9858\u3044\u3044\u305f\u3057\u307e\u3059\u3002\\nAdvance Sports Academy',\n  en:\n    'Thank you for filling out the form.\\n\\n' +\n    \"The trial lesson includes a lot of running activities, so if your child isn't able to \" +\n    \"complete everything, please don't worry \u2014 our staff will be there to support them.\\n\\n\" +\n    \"Here's what to bring on the day:\\n\\n\" +\n    '\u30fbSportswear & a change of clothes\\n\u30fbA towel\\n\u30fbWater (plenty of it)\\n' +\n    '\u30fbShoes (regular sneakers are fine) *Spikes are not allowed\\n' +\n    '\u30fbChildren in the gymnastics class: bare feet or socks\\n\\n' +\n    'Thank you,\\nAdvance Sports Academy',\n  th:\n    '\u0e02\u0e2d\u0e1a\u0e04\u0e38\u0e13\u0e2a\u0e33\u0e2b\u0e23\u0e31\u0e1a\u0e01\u0e32\u0e23\u0e01\u0e23\u0e2d\u0e01\u0e41\u0e1a\u0e1a\u0e1f\u0e2d\u0e23\u0e4c\u0e21\u0e04\u0e48\u0e30/\u0e04\u0e23\u0e31\u0e1a\\n\\n' +\n    '\u0e43\u0e19\u0e27\u0e31\u0e19\u0e17\u0e14\u0e25\u0e2d\u0e07\u0e40\u0e23\u0e35\u0e22\u0e19\u0e08\u0e30\u0e21\u0e35\u0e01\u0e34\u0e08\u0e01\u0e23\u0e23\u0e21\u0e17\u0e35\u0e48\u0e15\u0e49\u0e2d\u0e07\u0e27\u0e34\u0e48\u0e07\u0e40\u0e22\u0e2d\u0e30 \u0e2b\u0e32\u0e01\u0e1a\u0e38\u0e15\u0e23\u0e2b\u0e25\u0e32\u0e19\u0e17\u0e33\u0e44\u0e21\u0e48\u0e44\u0e2b\u0e27\u0e08\u0e19\u0e08\u0e1a ' +\n    '\u0e17\u0e32\u0e07\u0e2a\u0e15\u0e32\u0e1f\u0e1f\u0e4c\u0e08\u0e30\u0e04\u0e2d\u0e22\u0e0a\u0e48\u0e27\u0e22\u0e40\u0e2b\u0e25\u0e37\u0e2d \u0e44\u0e21\u0e48\u0e15\u0e49\u0e2d\u0e07\u0e01\u0e31\u0e07\u0e27\u0e25\u0e19\u0e30\u0e04\u0e30/\u0e04\u0e23\u0e31\u0e1a\\n\\n' +\n    '\u0e2a\u0e34\u0e48\u0e07\u0e17\u0e35\u0e48\u0e15\u0e49\u0e2d\u0e07\u0e40\u0e15\u0e23\u0e35\u0e22\u0e21\u0e21\u0e32\u0e43\u0e19\u0e27\u0e31\u0e19\u0e19\u0e31\u0e49\u0e19 \u0e21\u0e35\u0e14\u0e31\u0e07\u0e19\u0e35\u0e49\u0e04\u0e48\u0e30/\u0e04\u0e23\u0e31\u0e1a\\n\\n' +\n    '\u30fb\u0e0a\u0e38\u0e14\u0e01\u0e35\u0e2c\u0e32\u0e41\u0e25\u0e30\u0e0a\u0e38\u0e14\u0e40\u0e1b\u0e25\u0e35\u0e48\u0e22\u0e19\\n\u30fb\u0e1c\u0e49\u0e32\u0e02\u0e19\u0e2b\u0e19\u0e39\\n\u30fb\u0e19\u0e49\u0e33\u0e14\u0e37\u0e48\u0e21 (\u0e40\u0e15\u0e23\u0e35\u0e22\u0e21\u0e21\u0e32\u0e40\u0e22\u0e2d\u0e30\u0e46)\\n' +\n    '\u30fb\u0e23\u0e2d\u0e07\u0e40\u0e17\u0e49\u0e32 (\u0e23\u0e2d\u0e07\u0e40\u0e17\u0e49\u0e32\u0e17\u0e35\u0e48\u0e43\u0e2a\u0e48\u0e1b\u0e23\u0e30\u0e08\u0e33\u0e01\u0e47\u0e44\u0e14\u0e49) *\u0e2b\u0e49\u0e32\u0e21\u0e43\u0e2a\u0e48\u0e23\u0e2d\u0e07\u0e40\u0e17\u0e49\u0e32\u0e2a\u0e15\u0e31\u0e4a\u0e14\\n' +\n    '\u30fb\u0e40\u0e14\u0e47\u0e01\u0e17\u0e35\u0e48\u0e40\u0e23\u0e35\u0e22\u0e19\u0e04\u0e25\u0e32\u0e2a\u0e22\u0e34\u0e21\u0e19\u0e32\u0e2a\u0e15\u0e34\u0e01: \u0e40\u0e17\u0e49\u0e32\u0e40\u0e1b\u0e25\u0e48\u0e32\u0e2b\u0e23\u0e37\u0e2d\u0e43\u0e2a\u0e48\u0e16\u0e38\u0e07\u0e40\u0e17\u0e49\u0e32\\n\\n' +\n    '\u0e02\u0e2d\u0e1a\u0e04\u0e38\u0e13\u0e04\u0e48\u0e30/\u0e04\u0e23\u0e31\u0e1a\\nAdvance Sports Academy'\n};\n\n/* ============================================================\n * \u30b7\u30fc\u30f33\uff1a\u4f53\u9a13\u7d42\u4e86\u5f8c\uff08\u30b9\u30bf\u30c3\u30d5\u304c\u624b\u52d5\u9001\u4fe1\uff09\n * ============================================================ */\n\nconst ENROLL_FORMS_SHARED_EN_TH = {\n  ticket: { url: 'https://forms.gle/f9LzcNzLpxhSNp398', entryId: 'entry.54950727' },\n  monthly: { url: 'https://forms.gle/3PrDTtsBvZARfsc17', entryId: 'entry.1179713979' }\n};\n\nconst ENROLL_FORMS = {\n  ja: {\n    ticket: { url: 'https://forms.gle/7zPVmuvZm4K6ECL96', entryId: 'entry.40411921' },\n    monthly: { url: 'https://forms.gle/rVgkZ5EnKDjHKojA6', entryId: 'entry.1931375728' }\n  },\n  // \u30bf\u30a4\u8a9e\u30d5\u30a9\u30fc\u30e0\u306f\u672a\u4f5c\u6210\u306e\u305f\u3081\u3001\u5f53\u9762\u306f\u82f1\u8a9e\u30d5\u30a9\u30fc\u30e0\u3092\u5171\u7528\uff08\u30d5\u30a9\u30fc\u30e0\u5185\u306eLanguage\u8cea\u554f\u3067\u8a00\u8a9e\u5224\u5b9a\uff09\n  en: ENROLL_FORMS_SHARED_EN_TH,\n  th: ENROLL_FORMS_SHARED_EN_TH\n};\n\nconst SCENE3_AFTER_TRIAL_LESSON = {\n  ja:\n    '\u4f53\u9a13\u30ec\u30c3\u30b9\u30f3\u3001\u3042\u308a\u304c\u3068\u3046\u3054\u3056\u3044\u307e\u3057\u305f\uff01\\n' +\n    '\u304a\u5b50\u3055\u3093\u306f\u697d\u3057\u3093\u3067\u3044\u305f\u3060\u3051\u307e\u3057\u305f\u3067\u3057\u3087\u3046\u304b\uff1f\\n' +\n    'ASA\u3067\u306f\u3001\u304a\u5ba2\u69d8\u306e\u3054\u90fd\u5408\u306b\u5408\u308f\u305b\u3066\u30c1\u30b1\u30c3\u30c8\u5236\u3068\u6708\u984d\u5236\u306e2\u7a2e\u985e\u306e\u4f1a\u54e1\u30d7\u30e9\u30f3\u3092\u3054\u7528\u610f\u3057\u3066\u3044\u307e\u3059\u3002\\n' +\n    '\u4eca\u5f8c\u306e\u3054\u5165\u4f1a\u3092\u3054\u691c\u8a0e\u3044\u305f\u3060\u3051\u307e\u3057\u305f\u3089\u3001\u4e0b\u8a18\u3088\u308a\u304a\u7533\u3057\u8fbc\u307f\u304f\u3060\u3055\u3044\u3002\\n\\n' +\n    '\u30fb\u30c1\u30b1\u30c3\u30c8\u5236\u304a\u7533\u3057\u8fbc\u307f\u30d5\u30a9\u30fc\u30e0: {{TICKET_LINK}}\\n\\n' +\n    '\u30fb\u6708\u984d\u5236\u304a\u7533\u3057\u8fbc\u307f\u30d5\u30a9\u30fc\u30e0: {{MONTHLY_LINK}}\\n\\n' +\n    '\u3054\u4e0d\u660e\u306a\u70b9\u304c\u3054\u3056\u3044\u307e\u3057\u305f\u3089\u3001\u3044\u3064\u3067\u3082\u304a\u6c17\u8efd\u306b\u3054\u9023\u7d61\u304f\u3060\u3055\u3044\u306d\u3002\\n\\n' +\n    '\u3088\u308d\u3057\u304f\u304a\u9858\u3044\u3044\u305f\u3057\u307e\u3059\u3002\\nAdvance Sports Academy',\n  en:\n    'Thank you for coming to the trial lesson today! We hope your child had a great time.\\n\\n' +\n    'At ASA, we offer two membership plans to fit your schedule: a ticket-based plan and a monthly plan.\\n' +\n    \"If you're considering joining, please apply below.\\n\\n\" +\n    '\u30fbTicket Plan Application: {{TICKET_LINK}}\\n\\n' +\n    '\u30fbMonthly Plan Application: {{MONTHLY_LINK}}\\n\\n' +\n    \"Please don't hesitate to contact us if you have any questions.\\n\" +\n    'Best,\\nAdvance Sports Academy',\n  th:\n    '\u0e02\u0e2d\u0e1a\u0e04\u0e38\u0e13\u0e2a\u0e33\u0e2b\u0e23\u0e31\u0e1a\u0e04\u0e25\u0e32\u0e2a\u0e17\u0e14\u0e25\u0e2d\u0e07\u0e40\u0e23\u0e35\u0e22\u0e19\u0e43\u0e19\u0e27\u0e31\u0e19\u0e19\u0e35\u0e49\u0e19\u0e30\u0e04\u0e30/\u0e04\u0e23\u0e31\u0e1a! \u0e2b\u0e27\u0e31\u0e07\u0e27\u0e48\u0e32\u0e19\u0e49\u0e2d\u0e07\u0e46 \u0e08\u0e30\u0e2a\u0e19\u0e38\u0e01\u0e01\u0e31\u0e19\u0e19\u0e30\u0e04\u0e30/\u0e04\u0e23\u0e31\u0e1a\\n\\n' +\n    '\u0e17\u0e35\u0e48 ASA \u0e40\u0e23\u0e32\u0e21\u0e35\u0e41\u0e1c\u0e19\u0e2a\u0e21\u0e32\u0e0a\u0e34\u0e01 2 \u0e41\u0e1a\u0e1a\u0e40\u0e1e\u0e37\u0e48\u0e2d\u0e43\u0e2b\u0e49\u0e40\u0e2b\u0e21\u0e32\u0e30\u0e01\u0e31\u0e1a\u0e15\u0e32\u0e23\u0e32\u0e07\u0e40\u0e27\u0e25\u0e32\u0e02\u0e2d\u0e07\u0e04\u0e38\u0e13\u0e25\u0e39\u0e01\u0e04\u0e49\u0e32 \u0e04\u0e37\u0e2d\u0e41\u0e1a\u0e1a\u0e15\u0e31\u0e4b\u0e27\u0e41\u0e25\u0e30\u0e41\u0e1a\u0e1a\u0e23\u0e32\u0e22\u0e40\u0e14\u0e37\u0e2d\u0e19\\n' +\n    '\u0e2b\u0e32\u0e01\u0e2a\u0e19\u0e43\u0e08\u0e17\u0e35\u0e48\u0e08\u0e30\u0e2a\u0e21\u0e31\u0e04\u0e23\u0e2a\u0e21\u0e32\u0e0a\u0e34\u0e01 \u0e2a\u0e32\u0e21\u0e32\u0e23\u0e16\u0e2a\u0e21\u0e31\u0e04\u0e23\u0e1c\u0e48\u0e32\u0e19\u0e25\u0e34\u0e07\u0e01\u0e4c\u0e14\u0e49\u0e32\u0e19\u0e25\u0e48\u0e32\u0e07\u0e19\u0e35\u0e49\u0e44\u0e14\u0e49\u0e40\u0e25\u0e22\u0e04\u0e48\u0e30/\u0e04\u0e23\u0e31\u0e1a\\n\\n' +\n    '\u30fb\u0e41\u0e1a\u0e1a\u0e1f\u0e2d\u0e23\u0e4c\u0e21\u0e2a\u0e21\u0e31\u0e04\u0e23\u0e2a\u0e21\u0e32\u0e0a\u0e34\u0e01 (\u0e41\u0e1a\u0e1a\u0e15\u0e31\u0e4b\u0e27): {{TICKET_LINK}}\\n' +\n    '\u30fb\u0e41\u0e1a\u0e1a\u0e1f\u0e2d\u0e23\u0e4c\u0e21\u0e2a\u0e21\u0e31\u0e04\u0e23\u0e2a\u0e21\u0e32\u0e0a\u0e34\u0e01 (\u0e41\u0e1a\u0e1a\u0e23\u0e32\u0e22\u0e40\u0e14\u0e37\u0e2d\u0e19): {{MONTHLY_LINK}}\\n\\n' +\n    '\u0e2b\u0e32\u0e01\u0e21\u0e35\u0e02\u0e49\u0e2d\u0e2a\u0e07\u0e2a\u0e31\u0e22\u0e43\u0e14\u0e46 \u0e2a\u0e32\u0e21\u0e32\u0e23\u0e16\u0e15\u0e34\u0e14\u0e15\u0e48\u0e2d\u0e2a\u0e2d\u0e1a\u0e16\u0e32\u0e21\u0e44\u0e14\u0e49\u0e15\u0e25\u0e2d\u0e14\u0e40\u0e27\u0e25\u0e32\u0e19\u0e30\u0e04\u0e30/\u0e04\u0e23\u0e31\u0e1a \u0e02\u0e2d\u0e1a\u0e04\u0e38\u0e13\u0e04\u0e48\u0e30/\u0e04\u0e23\u0e31\u0e1a\\n' +\n    'Advance Sports Academy'\n};\n\n/* ============================================================\n * \u30b7\u30fc\u30f34\uff1a\u5165\u4f1a\u5f8c\uff08Band\u62db\u5f85\uff09\n * ============================================================ */\n\nconst SCENE4_WELCOME = {\n  ja:\n    '\u3088\u3046\u3053\u305dASA\u3078\uff01\\n' +\n    '\u3053\u306e\u5ea6\u306fASA\u306b\u3054\u5165\u4f1a\u3044\u305f\u3060\u304d\u3001\u8aa0\u306b\u3042\u308a\u304c\u3068\u3046\u3054\u3056\u3044\u307e\u3059\u3002\\n' +\n    'ASA\u3067\u306f\u3001\u4f1a\u54e1\u69d8\u9650\u5b9a\u306eBand\u30b0\u30eb\u30fc\u30d7\u3092\u5229\u7528\u3057\u3066\u3001\u30b9\u30b1\u30b8\u30e5\u30fc\u30eb\u7ba1\u7406\u3084\u51fa\u6b20\u78ba\u8a8d\u3001\u30a2\u30ab\u30c7\u30df\u30fc\u304b\u3089\u306e\u304a\u77e5\u3089\u305b\u306a\u3069\u3092\u884c\u3063\u3066\u3044\u307e\u3059\u3002\\n' +\n    '\u304a\u624b\u6570\u3067\u3059\u304c\u3001\u4e0b\u8a18\u30ea\u30f3\u30af\u3088\u308a\u3054\u53c2\u52a0\u3044\u305f\u3060\u304d\u3001Band\u30d7\u30ed\u30d5\u30a3\u30fc\u30eb\u306e\u8a2d\u5b9a\u3092\u304a\u9858\u3044\u3044\u305f\u3057\u307e\u3059\u3002\\n\\n' +\n    '\u30d7\u30ed\u30d5\u30a3\u30fc\u30eb\u8a2d\u5b9a\u306e\u304a\u9858\u3044\\n' +\n    '\u30fb\u30d7\u30ed\u30d5\u30a3\u30fc\u30eb\u306e\u540d\u524d\u3068\u5199\u771f\uff1a\u304a\u5b50\u69d8\u306e\u60c5\u5831\u306b\u5909\u66f4\u3057\u3066\u304f\u3060\u3055\u3044\u3002\\n' +\n    '\u30fb\u30b5\u30d6\u306e\u540d\u524d\uff1a\u4fdd\u8b77\u8005\u69d8\u306e\u304a\u540d\u524d\u3092\u3054\u8a18\u5165\u304f\u3060\u3055\u3044\u3002\\n' +\n    '\u30fb\u5144\u5f1f\u59c9\u59b9\u304c\u3044\u308b\u5834\u5408\uff1a\u30af\u30e9\u30b9\u306b\u53c2\u52a0\u3059\u308b\u304a\u5b50\u69d8\u5168\u54e1\u306e\u540d\u524d\u3068\u5199\u771f\u3092\u6dfb\u4ed8\u3057\u3066\u304f\u3060\u3055\u3044\u3002\\n\\n' +\n    '\u3054\u53c2\u52a0\u3044\u305f\u3060\u304fBand\u30b0\u30eb\u30fc\u30d7\\n' +\n    '\u30fbBand Enjoy Class: https://band.us/n/aaab05z058D9Y\\n' +\n    '\u30fbBand Advance Class: https://band.us/n/a6a7A3n3g0Ddk\\n\\n' +\n    '\u4eca\u5f8c\u306e\u9023\u7d61\u306f\u5168\u3066Band\u306b\u3066\u884c\u3044\u307e\u3059\u306e\u3067\u3001\u3054\u7406\u89e3\u3068\u3054\u5354\u529b\u3092\u304a\u9858\u3044\u3044\u305f\u3057\u307e\u3059\u3002\\n' +\n    '\u3054\u4e0d\u660e\u306a\u70b9\u304c\u3054\u3056\u3044\u307e\u3057\u305f\u3089\u3001\u304a\u6c17\u8efd\u306b\u304a\u554f\u3044\u5408\u308f\u305b\u304f\u3060\u3055\u3044\u3002\\n\\n' +\n    '\u3088\u308d\u3057\u304f\u304a\u9858\u3044\u3044\u305f\u3057\u307e\u3059\u3002\\nAdvance Sports Academy',\n  en:\n    'Welcome to ASA!\\n' +\n    'Thank you for joining us.\\n' +\n    'At ASA, we use an exclusive Band group for members to manage schedules, track attendance, ' +\n    'and receive announcements from the academy. Please join via the link below and set up your Band profile.\\n\\n' +\n    'Profile Setup Request\\n' +\n    \"\u30fbProfile Name & Photo: Please change to your child's information.\\n\" +\n    \"\u30fbNickname/Sub Name: Please enter the parent's/guardian's name.\\n\" +\n    '\u30fbIf you have siblings enrolled: Please include the names and photos of all children attending classes.\\n\\n' +\n    'Band Groups to Join\\n' +\n    '\u30fbBand Enjoy Class: https://band.us/n/aaab05z058D9Y\\n' +\n    '\u30fbBand Advance Class: https://band.us/n/a6a7A3n3g0Ddk\\n\\n' +\n    'All future communications will be through Band, so we appreciate your understanding and cooperation.\\n' +\n    'If you have any questions, please feel free to ask.',\n  th:\n    '\u0e22\u0e34\u0e19\u0e14\u0e35\u0e15\u0e49\u0e2d\u0e19\u0e23\u0e31\u0e1a\u0e2a\u0e39\u0e48 ASA \u0e04\u0e48\u0e30/\u0e04\u0e23\u0e31\u0e1a! \u0e02\u0e2d\u0e1a\u0e04\u0e38\u0e13\u0e17\u0e35\u0e48\u0e2a\u0e21\u0e31\u0e04\u0e23\u0e2a\u0e21\u0e32\u0e0a\u0e34\u0e01\u0e01\u0e31\u0e1a ASA \u0e04\u0e48\u0e30/\u0e04\u0e23\u0e31\u0e1a\\n\\n' +\n    '\u0e17\u0e35\u0e48 ASA \u0e40\u0e23\u0e32\u0e43\u0e0a\u0e49\u0e01\u0e25\u0e38\u0e48\u0e21 Band \u0e2a\u0e33\u0e2b\u0e23\u0e31\u0e1a\u0e2a\u0e21\u0e32\u0e0a\u0e34\u0e01\u0e40\u0e17\u0e48\u0e32\u0e19\u0e31\u0e49\u0e19 \u0e40\u0e1e\u0e37\u0e48\u0e2d\u0e08\u0e31\u0e14\u0e01\u0e32\u0e23\u0e15\u0e32\u0e23\u0e32\u0e07\u0e40\u0e23\u0e35\u0e22\u0e19 \u0e40\u0e0a\u0e47\u0e04\u0e0a\u0e37\u0e48\u0e2d \u0e41\u0e25\u0e30\u0e23\u0e31\u0e1a\u0e02\u0e48\u0e32\u0e27\u0e2a\u0e32\u0e23\u0e08\u0e32\u0e01\u0e17\u0e32\u0e07\u0e2d\u0e04\u0e32\u0e40\u0e14\u0e21\u0e35\u0e48\\n' +\n    '\u0e23\u0e1a\u0e01\u0e27\u0e19\u0e40\u0e02\u0e49\u0e32\u0e23\u0e48\u0e27\u0e21\u0e1c\u0e48\u0e32\u0e19\u0e25\u0e34\u0e07\u0e01\u0e4c\u0e14\u0e49\u0e32\u0e19\u0e25\u0e48\u0e32\u0e07\u0e41\u0e25\u0e30\u0e15\u0e31\u0e49\u0e07\u0e04\u0e48\u0e32\u0e42\u0e1b\u0e23\u0e44\u0e1f\u0e25\u0e4c Band \u0e14\u0e49\u0e27\u0e22\u0e04\u0e48\u0e30/\u0e04\u0e23\u0e31\u0e1a\\n\\n' +\n    '\u0e04\u0e33\u0e02\u0e2d\u0e43\u0e19\u0e01\u0e32\u0e23\u0e15\u0e31\u0e49\u0e07\u0e04\u0e48\u0e32\u0e42\u0e1b\u0e23\u0e44\u0e1f\u0e25\u0e4c\\n' +\n    '\u30fb\u0e0a\u0e37\u0e48\u0e2d\u0e41\u0e25\u0e30\u0e23\u0e39\u0e1b\u0e42\u0e1b\u0e23\u0e44\u0e1f\u0e25\u0e4c: \u0e01\u0e23\u0e38\u0e13\u0e32\u0e40\u0e1b\u0e25\u0e35\u0e48\u0e22\u0e19\u0e40\u0e1b\u0e47\u0e19\u0e02\u0e49\u0e2d\u0e21\u0e39\u0e25\u0e02\u0e2d\u0e07\u0e1a\u0e38\u0e15\u0e23\u0e2b\u0e25\u0e32\u0e19\\n' +\n    '\u30fb\u0e0a\u0e37\u0e48\u0e2d\u0e23\u0e2d\u0e07: \u0e01\u0e23\u0e38\u0e13\u0e32\u0e01\u0e23\u0e2d\u0e01\u0e0a\u0e37\u0e48\u0e2d\u0e1c\u0e39\u0e49\u0e1b\u0e01\u0e04\u0e23\u0e2d\u0e07\\n' +\n    '\u30fb\u0e01\u0e23\u0e13\u0e35\u0e21\u0e35\u0e1e\u0e35\u0e48\u0e19\u0e49\u0e2d\u0e07: \u0e01\u0e23\u0e38\u0e13\u0e32\u0e41\u0e19\u0e1a\u0e0a\u0e37\u0e48\u0e2d\u0e41\u0e25\u0e30\u0e23\u0e39\u0e1b\u0e20\u0e32\u0e1e\u0e02\u0e2d\u0e07\u0e1a\u0e38\u0e15\u0e23\u0e2b\u0e25\u0e32\u0e19\u0e17\u0e38\u0e01\u0e04\u0e19\u0e17\u0e35\u0e48\u0e40\u0e02\u0e49\u0e32\u0e23\u0e48\u0e27\u0e21\u0e04\u0e25\u0e32\u0e2a\\n\\n' +\n    '\u0e01\u0e25\u0e38\u0e48\u0e21 Band \u0e17\u0e35\u0e48\u0e15\u0e49\u0e2d\u0e07\u0e40\u0e02\u0e49\u0e32\u0e23\u0e48\u0e27\u0e21\\n' +\n    '\u30fbBand Enjoy Class: https://band.us/n/aaab05z058D9Y\\n' +\n    '\u30fbBand Advance Class: https://band.us/n/a6a7A3n3g0Ddk\\n\\n' +\n    '\u0e01\u0e32\u0e23\u0e15\u0e34\u0e14\u0e15\u0e48\u0e2d\u0e43\u0e19\u0e2d\u0e19\u0e32\u0e04\u0e15\u0e17\u0e31\u0e49\u0e07\u0e2b\u0e21\u0e14\u0e08\u0e30\u0e14\u0e33\u0e40\u0e19\u0e34\u0e19\u0e01\u0e32\u0e23\u0e1c\u0e48\u0e32\u0e19 Band \u0e08\u0e36\u0e07\u0e02\u0e2d\u0e02\u0e2d\u0e1a\u0e04\u0e38\u0e13\u0e2a\u0e33\u0e2b\u0e23\u0e31\u0e1a\u0e04\u0e27\u0e32\u0e21\u0e40\u0e02\u0e49\u0e32\u0e43\u0e08\u0e41\u0e25\u0e30\u0e04\u0e27\u0e32\u0e21\u0e23\u0e48\u0e27\u0e21\u0e21\u0e37\u0e2d\u0e04\u0e48\u0e30/\u0e04\u0e23\u0e31\u0e1a\\n' +\n    '\u0e2b\u0e32\u0e01\u0e21\u0e35\u0e02\u0e49\u0e2d\u0e2a\u0e07\u0e2a\u0e31\u0e22\u0e43\u0e14\u0e46 \u0e2a\u0e32\u0e21\u0e32\u0e23\u0e16\u0e2a\u0e2d\u0e1a\u0e16\u0e32\u0e21\u0e44\u0e14\u0e49\u0e15\u0e25\u0e2d\u0e14\u0e40\u0e27\u0e25\u0e32\u0e04\u0e48\u0e30/\u0e04\u0e23\u0e31\u0e1a'\n};\n\n/* ============================================================\n * Webhook\n * ============================================================ */\n\nfunction doPost(e) {\n  if (!e || !e.postData) {\n    Logger.log('doPost\u304c\u624b\u52d5\u5b9f\u884c\u3055\u308c\u307e\u3057\u305f\u3002\u52d5\u4f5c\u78ba\u8a8d\u306fLINE Developers\u306e\u300c\u691c\u8a3c\u300d\u30dc\u30bf\u30f3\u3001' +\n               '\u307e\u305f\u306f\u5b9f\u969b\u306bLINE\u3067\u30e1\u30c3\u30bb\u30fc\u30b8\u3092\u9001\u3063\u3066\u884c\u3063\u3066\u304f\u3060\u3055\u3044\u3002');\n    return jsonOutput_({ status: 'no postData' });\n  }\n\n  let body;\n  try {\n    body = JSON.parse(e.postData.contents);\n  } catch (err) {\n    Logger.log('\u30ea\u30af\u30a8\u30b9\u30c8\u306eJSON\u89e3\u6790\u306b\u5931\u6557: ' + err.message);\n    return jsonOutput_({ status: 'bad request' });\n  }\n\n  const events = body.events || [];\n\n  events.forEach(function (event) {\n    try {\n      handleEvent_(event);\n    } catch (err) {\n      // 1\u4ef6\u306e\u5931\u6557\u3067\u6b8b\u308a\u306e\u30a4\u30d9\u30f3\u30c8\u3092\u843d\u3068\u3055\u306a\u3044\n      Logger.log('\u30a4\u30d9\u30f3\u30c8\u51e6\u7406\u3067\u30a8\u30e9\u30fc: ' + err.message);\n    }\n  });\n\n  return jsonOutput_({ status: 'ok' });\n}\n\nfunction handleEvent_(event) {\n  if (event.type !== 'message' || event.message.type !== 'text') return;\n\n  const userId = event.source.userId;\n  const replyToken = event.replyToken;\n  const text = event.message.text;\n\n  const lang = detectLanguage_(text, userId);\n  saveLang_(userId, lang);\n\n  // 1. \u4eba\u304c\u5bfe\u5fdc\u3059\u3079\u304d\u5185\u5bb9\u306a\u3089\u3001\u81ea\u52d5\u3067\u7b54\u3048\u305a\u30b9\u30bf\u30c3\u30d5\u306b\u56de\u3059\n  if (needsHuman_(text)) {\n    replyMessage_(replyToken, HUMAN_HANDOFF_REPLY[lang]);\n    logRow_(userId, 'human_handoff_' + lang, text, true, '\u8981\u5bfe\u5fdc');\n    Logger.log('\u8981\u5bfe\u5fdc\u3068\u3057\u3066\u8a18\u9332: ' + userId);\n    return;\n  }\n\n  // 2. \u30d5\u30a9\u30fc\u30e0\u5165\u529b\u5b8c\u4e86\u306e\u7533\u544a\uff08\u30b7\u30fc\u30f31\u3088\u308a\u5148\u306b\u5224\u5b9a\u3059\u308b\uff09\n  if (isFormCompletionMessage_(text, lang)) {\n    if (alreadyHandled_(userId, 'scene2_after_trial_form_' + lang)) {\n      Logger.log('\u6301\u3061\u7269\u6848\u5185\u306f\u9001\u4fe1\u6e08\u307f\u306e\u305f\u3081\u30b9\u30ad\u30c3\u30d7: ' + userId);\n      return;\n    }\n    replyMessage_(replyToken, SCENE2_AFTER_TRIAL_FORM[lang]);\n    logRow_(userId, 'scene2_after_trial_form_' + lang, SCENE2_AFTER_TRIAL_FORM[lang], true, '');\n    return;\n  }\n\n  // 3. \u4f53\u9a13\u306e\u554f\u3044\u5408\u308f\u305b\n  const config = SCENE1_TRIAL_INQUIRY[lang];\n  const matched = config.keywords.some(function (kw) {\n    return containsKeyword_(text, kw);\n  });\n  if (!matched) return;\n\n  if (isKnownContact_(userId)) {\n    Logger.log('\u65e2\u5b58\u9867\u5ba2\u306e\u305f\u3081\u30b7\u30fc\u30f31\u3092\u30b9\u30ad\u30c3\u30d7: ' + userId);\n    return;\n  }\n\n  const keyword = 'scene1_trial_inquiry_' + lang;\n  if (alreadyHandled_(userId, keyword)) {\n    Logger.log('\u540c\u3058\u6848\u5185\u304c\u767b\u9332\u6e08\u307f\u306e\u305f\u3081\u30b9\u30ad\u30c3\u30d7: ' + userId + ' / ' + keyword);\n    return;\n  }\n\n  const replyText = config.body.replace(\n    '{{FORM_LINK}}',\n    buildPrefilledFormLink_(TRIAL_FORM.baseUrl, TRIAL_FORM.entryId, userId)\n  );\n\n  if (REPLY_MODE === 'immediate') {\n    const ok = replyMessage_(replyToken, replyText);\n    logRow_(userId, keyword, replyText, ok, '');\n  } else {\n    logRow_(userId, keyword, replyText, false, '');\n  }\n}\n\nfunction jsonOutput_(obj) {\n  return ContentService.createTextOutput(JSON.stringify(obj))\n    .setMimeType(ContentService.MimeType.JSON);\n}\n\nfunction buildPrefilledFormLink_(baseUrl, entryId, userId) {\n  const sep = baseUrl.indexOf('?') === -1 ? '?' : '&';\n  return baseUrl + sep + entryId + '=' + encodeURIComponent(userId);\n}\n\n/* ============================================================\n * Queue\uff08\u8a18\u9332\u3068\u91cd\u8907\u9632\u6b62\uff09\n * ============================================================ */\n\n/**\n * \u540c\u4e00\u30e6\u30fc\u30b6\u30fc\u30fb\u540c\u4e00\u30ad\u30fc\u30ef\u30fc\u30c9\u304c\u65e2\u306b\u8a18\u9332\u3055\u308c\u3066\u3044\u308c\u3070 true\u3002\n * \u9001\u4fe1\u6e08\u307f\u30fb\u672a\u9001\u4fe1\u30fb\u4fdd\u7559\u4e2d\u3092\u554f\u308f\u305a\u3001\u4e8c\u5ea6\u76ee\u306f\u9001\u3089\u306a\u3044\u3002\n */\nfunction alreadyHandled_(userId, keyword) {\n  const data = getQueueSheet_().getDataRange().getValues();\n  for (let i = 1; i < data.length; i++) {\n    if (data[i][1] === userId && data[i][2] === keyword) return true;\n  }\n  return false;\n}\n\nfunction logRow_(userId, keyword, replyText, sent, assignee) {\n  getQueueSheet_().appendRow([new Date(), userId, keyword, replyText, sent, assignee || '']);\n}\n\n/**\n * \u5b9a\u6642\u5b9f\u884c\uff1a\u672a\u9001\u4fe1\u306e\u884c\u3092\u51e6\u7406\u3059\u308b\u3002\n * REPLY_MODE \u304c 'immediate' \u306e\u3068\u304d\u306f\u9001\u4fe1\u6f0f\u308c\uff08\u8fd4\u4fe1\u306b\u5931\u6557\u3057\u305f\u884c\uff09\u306e\u518d\u9001\u306e\u307f\u3092\u62c5\u3046\u3002\n *\n *   E\u5217(sent)\u304ctrue      \u2192 \u30b9\u30ad\u30c3\u30d7\n *   F\u5217(\u62c5\u5f53\u8005)\u306b\u8a18\u5165\u3042\u308a \u2192 \u4fdd\u7559\uff08\u30b9\u30bf\u30c3\u30d5\u5bfe\u5fdc\u4e2d\uff09\n *   \u305d\u308c\u4ee5\u5916              \u2192 \u30d7\u30c3\u30b7\u30e5\u9001\u4fe1\u3057\u3001\u6210\u529f\u3057\u305f\u3089sent\u3092true\u306b\u3059\u308b\n */\nfunction processQueue() {\n  const lock = LockService.getScriptLock();\n  if (!lock.tryLock(30 * 1000)) {\n    Logger.log('\u5225\u306e\u51e6\u7406\u304c\u5b9f\u884c\u4e2d\u306e\u305f\u3081\u3001\u4eca\u56de\u306f\u30b9\u30ad\u30c3\u30d7\u3057\u307e\u3057\u305f\u3002');\n    return;\n  }\n\n  try {\n    const token = getChannelAccessToken_();\n    const sheet = getQueueSheet_();\n    const data = sheet.getDataRange().getValues();\n\n    for (let i = 1; i < data.length; i++) {\n      const userId = data[i][1];\n      const keyword = data[i][2];\n      const replyText = data[i][3];\n      const sent = data[i][4];\n      const assignee = (data[i][5] || '').toString().trim();\n\n      if (sent === true) continue;\n\n      if (assignee !== '') {\n        Logger.log('\u62c5\u5f53\u8005\u5bfe\u5fdc\u4e2d\u306e\u305f\u3081\u4fdd\u7559: ' + userId + ' / ' + keyword + ' / ' + assignee);\n        continue;\n      }\n\n      const ok = pushMessage_(userId, replyText, token);\n      sheet.getRange(i + 1, 5).setValue(ok);\n      Logger.log('\u5b9a\u6642\u51e6\u7406 ' + userId + ' / ' + keyword + ' \u2192 ' + ok);\n    }\n  } finally {\n    lock.releaseLock();\n  }\n}\n\n/* ============================================================\n * \u9001\u4fe1\n * ============================================================ */\n\n/**\n * replyToken \u3092\u4f7f\u3063\u305f\u8fd4\u4fe1\u3002\u7121\u6599\u67a0\u3092\u6d88\u8cbb\u305b\u305a\u3001\u5373\u5ea7\u306b\u5c4a\u304f\u3002\n * \u53d7\u4fe1\u3057\u305f\u30e1\u30c3\u30bb\u30fc\u30b8\u3078\u306e\u5fdc\u7b54\u306f\u5fc5\u305a\u3053\u3061\u3089\u3092\u4f7f\u3046\u3002\n */\nfunction replyMessage_(replyToken, text) {\n  if (!replyToken) return false;\n  const options = {\n    method: 'post',\n    contentType: 'application/json',\n    headers: { Authorization: 'Bearer ' + getChannelAccessToken_() },\n    payload: JSON.stringify({\n      replyToken: replyToken,\n      messages: [{ type: 'text', text: text }]\n    }),\n    muteHttpExceptions: true\n  };\n  const res = UrlFetchApp.fetch('https://api.line.me/v2/bot/message/reply', options);\n  const code = res.getResponseCode();\n  if (code !== 200) {\n    Logger.log('\u8fd4\u4fe1\u306b\u5931\u6557 (HTTP ' + code + '): ' + res.getContentText());\n  }\n  return code === 200;\n}\n\n/**\n * \u3053\u3061\u3089\u304b\u3089\u9001\u308b\u30d7\u30c3\u30b7\u30e5\u3002\u9001\u4fe1\u6570\u306e\u4e0a\u9650\u3092\u6d88\u8cbb\u3059\u308b\u305f\u3081\u3001\n * \u53d7\u4fe1\u3078\u306e\u5fdc\u7b54\u3067\u306f\u306a\u304f\u30d5\u30a9\u30fc\u30e0\u9001\u4fe1\u5f8c\u306e\u6848\u5185\u306a\u3069\u306b\u9650\u3063\u3066\u4f7f\u3046\u3002\n */\nfunction pushMessage_(userId, text, token) {\n  const options = {\n    method: 'post',\n    contentType: 'application/json',\n    headers: { Authorization: 'Bearer ' + (token || getChannelAccessToken_()) },\n    payload: JSON.stringify({\n      to: userId,\n      messages: [{ type: 'text', text: text }]\n    }),\n    muteHttpExceptions: true\n  };\n  const res = UrlFetchApp.fetch('https://api.line.me/v2/bot/message/push', options);\n  const code = res.getResponseCode();\n  if (code !== 200) {\n    Logger.log('\u30d7\u30c3\u30b7\u30e5\u9001\u4fe1\u306b\u5931\u6557 (HTTP ' + code + '): ' + res.getContentText());\n  }\n  return code === 200;\n}\n\n/* ============================================================\n * \u30d5\u30a9\u30fc\u30e0\u9001\u4fe1\u6642\u306e\u51e6\u7406\n * ============================================================ */\n\nfunction onTrialFormSubmit(e) {\n  const userId = extractUserId_(e);\n  if (!userId) {\n    Logger.log('userId\u53d6\u5f97\u5931\u6557\uff08\u30b7\u30fc\u30f32\uff09\u3002\u30d5\u30a9\u30fc\u30e0\u306e\u300cLINE ID\u300d\u8cea\u554f\u3068\u3001' +\n               'LINE\u304c\u9001\u308b\u30ea\u30f3\u30af\u306e\u4e8b\u524d\u5165\u529b\u8a2d\u5b9a\u3092\u78ba\u8a8d\u3057\u3066\u304f\u3060\u3055\u3044\u3002');\n    return;\n  }\n  const lang = extractFormLanguage_(e);\n  const keyword = 'scene2_after_trial_form_' + lang;\n  if (alreadyHandled_(userId, keyword)) {\n    Logger.log('\u6301\u3061\u7269\u6848\u5185\u306f\u9001\u4fe1\u6e08\u307f\u306e\u305f\u3081\u30b9\u30ad\u30c3\u30d7: ' + userId);\n    return;\n  }\n  const ok = pushMessage_(userId, SCENE2_AFTER_TRIAL_FORM[lang]);\n  logRow_(userId, keyword, SCENE2_AFTER_TRIAL_FORM[lang], ok, '');\n}\n\nfunction onEnrollFormSubmitJaTicket(e) { handleEnrollFormSubmit_(e, 'ja'); }\nfunction onEnrollFormSubmitJaMonthly(e) { handleEnrollFormSubmit_(e, 'ja'); }\nfunction onEnrollFormSubmitSharedTicket(e) { handleEnrollFormSubmit_(e, extractFormLanguage_(e)); }\nfunction onEnrollFormSubmitSharedMonthly(e) { handleEnrollFormSubmit_(e, extractFormLanguage_(e)); }\n\nfunction handleEnrollFormSubmit_(e, lang) {\n  const userId = extractUserId_(e);\n  if (!userId) {\n    Logger.log('userId\u53d6\u5f97\u5931\u6557\uff08\u30b7\u30fc\u30f34\u30fb' + lang + '\uff09\u3002\u30d5\u30a9\u30fc\u30e0\u306e\u300cLINE ID\u300d\u8cea\u554f\u3092\u78ba\u8a8d\u3057\u3066\u304f\u3060\u3055\u3044\u3002');\n    return;\n  }\n  const keyword = 'scene4_welcome_' + lang;\n  if (alreadyHandled_(userId, keyword)) {\n    Logger.log('\u5165\u4f1a\u6848\u5185\u306f\u9001\u4fe1\u6e08\u307f\u306e\u305f\u3081\u30b9\u30ad\u30c3\u30d7: ' + userId);\n    return;\n  }\n  const ok = pushMessage_(userId, SCENE4_WELCOME[lang]);\n  logRow_(userId, keyword, SCENE4_WELCOME[lang], ok, '');\n}\n\n/**\n * \u30d5\u30a9\u30fc\u30e0\u56de\u7b54\u304b\u3089LINE\u30e6\u30fc\u30b6\u30fcID\u3092\u53d6\u308a\u51fa\u3059\u3002\n * \u8cea\u554f\u30bf\u30a4\u30c8\u30eb\u306e\u8868\u8a18\u3086\u308c\u306b\u8010\u3048\u308b\u3088\u3046\u3001\u8907\u6570\u306e\u547c\u3073\u65b9\u3092\u8a31\u5bb9\u3059\u308b\u3002\n * \u4f53\u9a13\u30d5\u30a9\u30fc\u30e0\u306e\u56de\u7b54\u30b7\u30fc\u30c8\u3067\u306f\u5217\u540d\u304c\u300cLINE ID\u300d\u306b\u306a\u3063\u3066\u3044\u308b\u3002\n */\nfunction extractUserId_(e) {\n  const values = (e && e.namedValues) || {};\n  const candidates = ['\u30b7\u30b9\u30c6\u30e0\u7528ID', 'system id', 'systemid', 'line id', 'lineid', 'line_id'];\n  const key = Object.keys(values).find(function (k) {\n    const norm = k.toLowerCase().replace(/\\s+/g, ' ').trim();\n    return candidates.some(function (c) { return norm.indexOf(c) !== -1; });\n  });\n  if (!key) return null;\n  const v = values[key][0];\n  return v ? v.toString().trim() : null;\n}\n\n/**\n * \u30d5\u30a9\u30fc\u30e0\u5185\u300cLanguage\u300d\u8cea\u554f\u306e\u56de\u7b54\u304b\u3089\u8a00\u8a9e\u30b3\u30fc\u30c9\u3092\u5224\u5b9a\u3059\u308b\u3002\n * \u9078\u629e\u80a2: \u65e5\u672c\u8a9e / English / \u0e20\u0e32\u0e29\u0e32\u0e44\u0e17\u0e22\n */\nfunction extractFormLanguage_(e) {\n  const values = (e && e.namedValues) || {};\n  const key = Object.keys(values).find(function (k) {\n    return k.trim().toLowerCase() === 'language';\n  });\n  const answer = key ? values[key][0] : '';\n\n  if (answer.indexOf('\u65e5\u672c\u8a9e') !== -1) return 'ja';\n  if (answer.indexOf('\u0e44\u0e17\u0e22') !== -1) return 'th';\n  return 'en';\n}\n\n/* ============================================================\n * \u30b9\u30bf\u30c3\u30d5\u64cd\u4f5c\n * ============================================================ */\n\nfunction sendScene3Manual() {\n  const ui = SpreadsheetApp.getUi();\n\n  const userIdResp = ui.prompt('LINE\u30e6\u30fc\u30b6\u30fcID\u3092\u5165\u529b\u3057\u3066\u304f\u3060\u3055\u3044');\n  if (userIdResp.getSelectedButton() !== ui.Button.OK) return;\n  const userId = userIdResp.getResponseText().trim();\n  if (!userId) return;\n\n  const langResp = ui.prompt('\u8a00\u8a9e\u3092\u5165\u529b\u3057\u3066\u304f\u3060\u3055\u3044\uff08ja / en / th\uff09');\n  if (langResp.getSelectedButton() !== ui.Button.OK) return;\n  const lang = langResp.getResponseText().trim();\n  if (!SCENE3_AFTER_TRIAL_LESSON[lang]) {\n    ui.alert('\u8a00\u8a9e\u306f ja / en / th \u306e\u3044\u305a\u308c\u304b\u3067\u5165\u529b\u3057\u3066\u304f\u3060\u3055\u3044\u3002');\n    return;\n  }\n\n  const forms = ENROLL_FORMS[lang];\n  const text = SCENE3_AFTER_TRIAL_LESSON[lang]\n    .replace('{{TICKET_LINK}}', buildPrefilledFormLink_(forms.ticket.url, forms.ticket.entryId, userId))\n    .replace('{{MONTHLY_LINK}}', buildPrefilledFormLink_(forms.monthly.url, forms.monthly.entryId, userId));\n\n  const ok = pushMessage_(userId, text);\n  if (ok) logRow_(userId, 'scene3_after_trial_lesson_' + lang, text, true, '');\n  ui.alert(ok ? '\u9001\u4fe1\u3057\u307e\u3057\u305f\u3002' : '\u9001\u4fe1\u306b\u5931\u6557\u3057\u307e\u3057\u305f\u3002\u30ed\u30b0\u3092\u78ba\u8a8d\u3057\u3066\u304f\u3060\u3055\u3044\u3002');\n}\n\nfunction addKnownContact() {\n  const ui = SpreadsheetApp.getUi();\n\n  const userIdResp = ui.prompt('\u65e2\u5b58\u9867\u5ba2\u3068\u3057\u3066\u767b\u9332\u3059\u308bLINE\u30e6\u30fc\u30b6\u30fcID\u3092\u5165\u529b\u3057\u3066\u304f\u3060\u3055\u3044');\n  if (userIdResp.getSelectedButton() !== ui.Button.OK) return;\n  const userId = userIdResp.getResponseText().trim();\n  if (!userId) return;\n\n  const memoResp = ui.prompt('\u30e1\u30e2\uff08\u4efb\u610f\u30fb\u540d\u524d\u306a\u3069\u3002\u7a7a\u6b04\u3067\u3082OK\uff09');\n  const memo = memoResp.getSelectedButton() === ui.Button.OK ? memoResp.getResponseText().trim() : '';\n\n  getKnownContactsSheet_().appendRow([userId, memo]);\n  ui.alert('\u767b\u9332\u3057\u307e\u3057\u305f: ' + userId);\n}\n\nfunction onOpen() {\n  SpreadsheetApp.getUi()\n    .createMenu('ASA\u30c4\u30fc\u30eb')\n    .addItem('\u30b7\u30fc\u30f33\u3092\u9001\u4fe1\uff08\u4f53\u9a13\u30ec\u30c3\u30b9\u30f3\u5f8c\u306e\u304a\u793c\uff09', 'sendScene3Manual')\n    .addItem('\u65e2\u5b58\u9867\u5ba2\u3068\u3057\u3066\u767b\u9332\uff08\u30b7\u30fc\u30f31\u306e\u81ea\u52d5\u6848\u5185\u3092\u6b62\u3081\u308b\uff09', 'addKnownContact')\n    .addSeparator()\n    .addItem('\u8a2d\u5b9a\u3092\u78ba\u8a8d', 'checkProperties')\n    .addToUi();\n}\n\n/* ============================================================\n * \u30bb\u30c3\u30c8\u30a2\u30c3\u30d7\u30fb\u8a3a\u65ad\n * ============================================================ */\n\nfunction setupHourlyTrigger() {\n  const oldFunctions = [\n    'process00', 'process02', 'process04', 'process06',\n    'process08', 'process10', 'process12', 'process14',\n    'process16', 'process18', 'process20', 'process22',\n    'processQueue'\n  ];\n\n  ScriptApp.getProjectTriggers().forEach(function (t) {\n    if (oldFunctions.indexOf(t.getHandlerFunction()) !== -1) {\n      ScriptApp.deleteTrigger(t);\n    }\n  });\n\n  ScriptApp.newTrigger('processQueue').timeBased().everyHours(1).create();\n  Logger.log('1\u6642\u9593\u304a\u304d\u306e\u30c8\u30ea\u30ac\u30fc\u3092\u767b\u9332\u3057\u307e\u3057\u305f\uff08\u65e7\u30c8\u30ea\u30ac\u30fc\u306f\u524a\u9664\u6e08\u307f\uff09\u3002');\n}\n\nfunction setupFormTriggers() {\n  const targets = [\n    { formId: '1im84mMXHDZEfFxJFOUtpP3CzqA6zhefK6wSo5CfEr0E', fn: 'onTrialFormSubmit' },\n    { formId: '1EBIzXLmgD_5zR_Z5hjv5Mp9C1nfAvgdaBb7X69J8Lkw', fn: 'onEnrollFormSubmitJaTicket' },\n    { formId: '174nE6w8R2exFaul_tzw1gn4pguXjA_abNF5u7Q_t16M', fn: 'onEnrollFormSubmitJaMonthly' },\n    { formId: '1ryQ8Fy_nRmfnqpDv-Q-JK11r3xN3THSmkNQASLzakCg', fn: 'onEnrollFormSubmitSharedTicket' },\n    { formId: '14HrG7hB2DRMwVXnA6RPWULJXTP21Z9nxJPjR4gSIAuU', fn: 'onEnrollFormSubmitSharedMonthly' }\n  ];\n\n  targets.forEach(function (t) {\n    ScriptApp.getProjectTriggers().forEach(function (tr) {\n      if (tr.getHandlerFunction() === t.fn) ScriptApp.deleteTrigger(tr);\n    });\n    try {\n      const form = FormApp.openById(t.formId);\n      ScriptApp.newTrigger(t.fn).forForm(form).onFormSubmit().create();\n      Logger.log('\u767b\u9332\u6210\u529f: ' + t.fn + '\uff08' + form.getTitle() + '\uff09');\n    } catch (err) {\n      Logger.log('\u767b\u9332\u5931\u6557: ' + t.fn + '\uff08' + t.formId + '\uff09\u30a8\u30e9\u30fc: ' + err.message);\n    }\n  });\n\n  Logger.log('setupFormTriggers \u5b8c\u4e86\u3002\u300c\u767b\u9332\u6210\u529f\u300d\u304c5\u4ef6\u51fa\u3066\u3044\u308b\u304b\u78ba\u8a8d\u3057\u3066\u304f\u3060\u3055\u3044\u3002');\n}\n\n/**\n * \u8a2d\u5b9a\u306e\u78ba\u8a8d\u3002\u30c8\u30fc\u30af\u30f3\u306f\u5148\u982d\u3068\u672b\u5c3e\u306e\u307f\u8868\u793a\u3059\u308b\u3002\n */\nfunction checkProperties() {\n  const props = PropertiesService.getScriptProperties().getProperties();\n  const token = props[PROP_TOKEN];\n  const sheetId = props[PROP_SHEET_ID];\n\n  Logger.log(PROP_TOKEN + ': ' +\n    (token ? token.slice(0, 4) + '...' + token.slice(-4) + '\uff08' + token.length + '\u6587\u5b57\uff09' : '\u2605\u672a\u8a2d\u5b9a'));\n  Logger.log(PROP_SHEET_ID + ': ' + (sheetId || '\u2605\u672a\u8a2d\u5b9a'));\n}\n\nfunction testSheetAccess() {\n  const data = getQueueSheet_().getDataRange().getValues();\n  Logger.log('Queue\u30b7\u30fc\u30c8 \u30a2\u30af\u30bb\u30b9OK\u3002\u73fe\u5728\u306e\u884c\u6570: ' + data.length);\n}\n\nfunction debugListSheetNames() {\n  const ss = getSpreadsheet_();\n  Logger.log('\u30b9\u30d7\u30ec\u30c3\u30c9\u30b7\u30fc\u30c8\u540d: ' + ss.getName());\n  ss.getSheets().forEach(function (s) {\n    Logger.log('\u30b7\u30fc\u30c8\u540d: [' + s.getName() + ']\uff08' + s.getName().length + '\u6587\u5b57\uff09');\n  });\n}\n";
+
+  const tabs = [...document.querySelectorAll('.tab')];
+  tabs.forEach(function (tab) {
+    tab.addEventListener('click', function () {
+      tabs.forEach(function (t) {
+        const on = t === tab;
+        t.setAttribute('aria-selected', on ? 'true' : 'false');
+        document.getElementById(t.getAttribute('aria-controls')).classList.toggle('active', on);
+      });
+    });
+  });
+
+  const btn = document.getElementById('copyBtn');
+  btn.addEventListener('click', async function () {
+    let ok = false;
+    try {
+      await navigator.clipboard.writeText(SOURCE);
+      ok = true;
+    } catch (err) {
+      // クリップボードAPIが使えない環境向けのフォールバック
+      const ta = document.createElement('textarea');
+      ta.value = SOURCE;
+      ta.style.position = 'fixed';
+      ta.style.opacity = '0';
+      document.body.appendChild(ta);
+      ta.select();
+      try { ok = document.execCommand('copy'); } catch (e2) { ok = false; }
+      document.body.removeChild(ta);
+    }
+    btn.textContent = ok ? '✓ コピーしました' : 'コピーできません — 手動で選択してください';
+    btn.classList.toggle('done', ok);
+    setTimeout(function () {
+      btn.textContent = 'コードをコピー';
+      btn.classList.remove('done');
+    }, 2600);
+  });
+</script>
