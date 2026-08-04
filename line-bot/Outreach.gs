@@ -49,6 +49,12 @@ const SHEET_OUTREACH = 'Outreach';
 const OUTREACH_HEADER =
   ['schoolName', 'email', 'lang', 'contact', 'status', 'sentAt', 'note'];
 
+/**
+ * 名簿を別のスプレッドシートに置きたいときに設定するスクリプトプロパティ。
+ * 未設定なら LINE 用と同じスプレッドシートを使う。
+ */
+const PROP_OUTREACH_SHEET_ID = 'OUTREACH_SHEET_ID';
+
 /* ============================================================
  * 文面（{{SCHOOL}} に学校名が入る）
  * ============================================================
@@ -201,14 +207,69 @@ const OUTREACH_BODY = {
  * シートの用意
  * ============================================================ */
 
+/**
+ * 名簿を置くスプレッドシート。
+ *
+ * 学校の名簿は LINE の返信ログとは別物なので、別ファイルに分けて持てる
+ * ようにしてある。スクリプトプロパティ OUTREACH_SHEET_ID にIDを入れると
+ * そちらを開き、未設定なら従来どおり LINE 用のスプレッドシートを使う。
+ */
+function getOutreachSpreadsheet_() {
+  const id = PropertiesService.getScriptProperties()
+    .getProperty(PROP_OUTREACH_SHEET_ID);
+  return id ? SpreadsheetApp.openById(id) : getSpreadsheet_();
+}
+
+/** 1行目が名簿の見出しと一致するタブかどうか。 */
+function isOutreachSheet_(sheet) {
+  const width = OUTREACH_HEADER.length;
+  if (sheet.getLastColumn() < width) return false;
+  const head = sheet.getRange(1, 1, 1, width).getValues()[0];
+  return OUTREACH_HEADER.every(function (name, i) {
+    return String(head[i]).trim() === name;
+  });
+}
+
+/**
+ * 名簿のタブを返す。
+ *
+ * `Outreach` という名前のタブが無くても、1行目が想定どおりの見出しに
+ * なっているタブが1つだけあればそれを使う。CSVを貼っただけでタブ名が
+ * 「シート1」のままでも動くようにするため。
+ * 見出しの一致するタブが複数あるときは、どれに送るのかが曖昧なので止める。
+ */
 function getOutreachSheet_() {
-  return getOrCreateSheet_(SHEET_OUTREACH, OUTREACH_HEADER);
+  const ss = getOutreachSpreadsheet_();
+  const named = ss.getSheetByName(SHEET_OUTREACH);
+  if (named) return named;
+
+  const found = ss.getSheets().filter(isOutreachSheet_);
+  if (found.length === 1) {
+    Logger.log('タブ「' + found[0].getName() + '」を名簿として使います。');
+    return found[0];
+  }
+  if (found.length > 1) {
+    throw new Error(
+      '名簿らしいタブが' + found.length + '個あります（' +
+      found.map(function (s) { return s.getName(); }).join(' / ') +
+      '）。送信先が曖昧なので中止しました。使う方のタブ名を「' +
+      SHEET_OUTREACH + '」にしてください。'
+    );
+  }
+
+  const sheet = ss.insertSheet(SHEET_OUTREACH);
+  sheet.appendRow(OUTREACH_HEADER);
+  return sheet;
 }
 
 function setupOutreachSheet() {
   const sheet = getOutreachSheet_();
   sheet.setFrozenRows(1);
-  Logger.log('Outreach シートを用意しました。列は ' + OUTREACH_HEADER.join(' / '));
+  Logger.log(
+    '名簿：' + sheet.getParent().getName() + ' の「' + sheet.getName() + '」タブ'
+  );
+  Logger.log(sheet.getParent().getUrl());
+  Logger.log('列は ' + OUTREACH_HEADER.join(' / '));
   Logger.log('学校名・メールアドレス・言語(ja/en/th) を入力してから previewOutreach() を実行してください。');
 }
 

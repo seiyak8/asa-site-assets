@@ -48,8 +48,18 @@ KOJIMA JAPAN CUP の参加募集を、バンコクの学校へ日本語・英語
 
 ## 使い方
 
-1. `bangkok-schools.csv` を Google スプレッドシートの `Outreach` タブに貼る
-   （`setupOutreachSheet()` を実行すると空の枠が作られる）
+1. 名簿のスプレッドシートを用意する
+
+   作成済み：**[ASA 学校営業リスト（KOJIMA JAPAN CUP）](https://docs.google.com/spreadsheets/d/1_oDl26YsPogLJLXrJkJo1gBVw1TjWOBhPHlotmLGwVE/edit)**
+   （`bangkok-schools.csv` の内容がそのまま入っている）
+
+   Apps Script のプロジェクトの設定 → スクリプトプロパティに
+   `OUTREACH_SHEET_ID` = `1_oDl26YsPogLJLXrJkJo1gBVw1TjWOBhPHlotmLGwVE` を追加する。
+   未設定だと LINE 用のスプレッドシートを見にいくので、必ず入れること。
+
+   タブ名は `Outreach` でなくてもよい。1行目が上記の見出しどおりなら
+   「シート1」のままでも認識する。
+
 2. アドレスと言語（`ja` / `en` / `th`）を人が確認して入力
 3. `previewOutreach()` … 1通目の本文を実物どおりに表示。**必ず目で読む**
 4. `sendOutreachBatch()` … `DRY_RUN = true` のまま実行。宛先一覧がログに出るだけで、1通も送られない
