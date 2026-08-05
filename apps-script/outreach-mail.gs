@@ -109,7 +109,8 @@ const OUTREACH_BODY = {
     '---',
     'Advance Sports Academy（ASA）',
     '代表　小島 聖矢',
-    'Email: seiya@asa-th.com / Tel: 080-9691-0860 / Instagram: @asabangkok',
+    'Email: seiya@asa-th.com / Tel: 097-1868-917',
+    'Instagram: @advancesportsacademy / @seiya8kojima',
     '',
     '※ 今後のご案内が不要な場合は、その旨ご返信ください。以後お送りいたしません。'
   ].join('\n'),
@@ -154,7 +155,8 @@ const OUTREACH_BODY = {
     '---',
     'Advance Sports Academy (ASA)',
     'Seiya Kojima, Director',
-    'Email: seiya@asa-th.com / Tel: 080-9691-0860 / Instagram: @asabangkok',
+    'Email: seiya@asa-th.com / Tel: 097-1868-917',
+    'Instagram: @advancesportsacademy / @seiya8kojima',
     '',
     'If you would prefer not to receive further messages from us, simply reply and we will not write again.'
   ].join('\n'),
@@ -199,7 +201,8 @@ const OUTREACH_BODY = {
     '---',
     'Advance Sports Academy (ASA)',
     'เซยะ โคจิมะ (Seiya Kojima) — ผู้อำนวยการ',
-    'Email: seiya@asa-th.com / Tel: 080-9691-0860 / Instagram: @asabangkok',
+    'Email: seiya@asa-th.com / Tel: 097-1868-917',
+    'Instagram: @advancesportsacademy / @seiya8kojima',
     '',
     'หากไม่ประสงค์จะรับข่าวสารจากเราอีก กรุณาตอบกลับแจ้งให้ทราบ ทางเราจะไม่ส่งอีกครับ'
   ].join('\n')
