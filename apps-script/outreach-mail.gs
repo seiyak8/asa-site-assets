@@ -64,7 +64,7 @@ const OUTREACH_SUBJECT = {
   th: 'ขอเรียนเชิญเข้าร่วมการแข่งขันฟุตบอล U-12 "KOJIMA JAPAN CUP" (20 ก.ย. 2569 — ทีมชนะเลิศได้เดินทางไปญี่ปุ่น)'
 };
 
-const ENTRY_FORM_URL = 'https://forms.gle/bSqwo5V5fKJ23pAN7';
+const ENTRY_FORM_URL = 'https://forms.gle/6K57Wc5KwgfikJTC9';
 
 const OUTREACH_BODY = {
   ja: [
@@ -74,9 +74,11 @@ const OUTREACH_BODY = {
     '',
     'このたび、タイのU-12世代を対象としたサッカー大会「KOJIMA JAPAN CUP」を開催する運びとなりました。貴校のチームにぜひご参加いただきたく、ご案内を差し上げます。',
     '',
-    'この大会の最大の特徴は、優勝チームを日本へご招待することです。埼玉県で開催される「宇賀神カップ」（主催：宇賀神友弥氏／元浦和レッズ・現浦和レッズU21責任者）に出場し、日本各地の強豪30チームと本気の勝負を経験していただきます。滞在中はJ1リーグの試合観戦、プロが使用する施設でのトレーニング、東京・埼玉の観光も予定しております。',
+    'この大会の最大の特徴は、優勝チームを日本へご招待することです。埼玉県で開催される「宇賀神カップ」（主催：宇賀神友弥氏／元浦和レッズ）に出場し、日本各地の強豪30チームと本気の勝負を経験していただきます。滞在中はJ1リーグの試合観戦（浦和レッズ 対 ジェフユナイテッド千葉／埼玉スタジアム2002）、プロが使用する施設でのトレーニング、東京・埼玉の観光も予定しております。',
     '',
-    'この日本遠征にかかる費用は、渡航費・宿泊費・大会参加費を含め、すべて主催者が負担いたします。選手12名とコーチ2名の計14名をご招待します。',
+    '遠征日程は2026年10月21日（水）〜10月26日（月）の6日間、宇賀神カップは10月24日（土）・25日（日）の2日間です。宿泊は日本の旅館形式の施設を予定しております。渡航にはパスポートが必要ですので、あらかじめご確認ください。',
+    '',
+    'この日本遠征にかかる費用は、渡航費・宿泊費・大会参加費を含め、すべて主催者が負担いたします。選手12名とコーチ2名の計14名をご招待します。遠征用のウェアは EGO SPORTS 様よりご提供いただきます。',
     '',
     '■ 大会概要',
     '　日時　　　2026年9月20日（日）9:00開始（8:30受付）',
@@ -86,7 +88,8 @@ const OUTREACH_BODY = {
     '　登録　　　選手12名＋コーチ2名',
     '　定員　　　32チーム（先着順）',
     '　参加費　　3,000バーツ／1チーム',
-    '　申込締切　2026年8月31日（月）',
+    '　試合時間　1・2回戦は20分（ハーフなし）／準々決勝以降は15分ハーフ（計30分）',
+    '　申込締切　2026年8月30日（日）',
     '',
     '■ 貴校にとってのメリット',
     '',
@@ -118,9 +121,9 @@ const OUTREACH_BODY = {
     '',
     'I am writing to invite your school to take part in the KOJIMA JAPAN CUP, a U-12 football tournament we are hosting this September.',
     '',
-    'What makes this tournament different is that the champions travel to Japan. The winning team will be invited to compete in the Ugajin Cup in Saitama, hosted by Tomoya Ugajin — former Urawa Reds player and current head of the Urawa Reds U21 squad — against 30 of the strongest teams from across Japan. The trip also includes watching a J1 League match at the stadium, training at professional facilities, and sightseeing in Tokyo and Saitama.',
+    'What makes this tournament different is that the champions travel to Japan. The winning team will be invited to the Ugajin Cup in Saitama on 24-25 October 2026, hosted by former Urawa Reds player Tomoya Ugajin, against 30 of the strongest teams from across Japan. The trip runs from 21 to 26 October and also includes a J1 League match at Saitama Stadium 2002 (Urawa Reds vs JEF United Chiba), training at professional facilities, and sightseeing in Tokyo and Saitama. The squad stays in a traditional Japanese inn.',
     '',
-    'Every cost of this trip — flights, accommodation and tournament fees — is covered in full by the organisers. We will host 12 players and 2 coaches.',
+    'Every cost of this trip — flights, accommodation and tournament fees — is covered in full by the organisers, and the touring kit is provided by EGO Sports. We will host 12 players and 2 coaches. Please note that valid passports are required.',
     '',
     'Tournament details',
     '  Date            Sunday 20 September 2026, 9:00 kick-off (registration from 8:30)',
@@ -130,7 +133,8 @@ const OUTREACH_BODY = {
     '  Squad           12 players + 2 coaches',
     '  Capacity        32 teams (first come, first served)',
     '  Entry fee       3,000 THB per team',
-    '  Entry deadline  Monday 31 August 2026',
+    '  Match length    20 minutes in rounds 1-2; 15-minute halves from the quarter-finals',
+    '  Entry deadline  Sunday 30 August 2026',
     '',
     'Why this may interest your school',
     '',
@@ -162,9 +166,9 @@ const OUTREACH_BODY = {
     '',
     'ในครั้งนี้ ทางเราจะจัดการแข่งขันฟุตบอลรุ่น U-12 ชื่อ "KOJIMA JAPAN CUP" ขึ้น จึงขอเรียนเชิญทีมของโรงเรียนท่านเข้าร่วมการแข่งขันครับ',
     '',
-    'จุดเด่นที่สุดของรายการนี้คือ ทีมชนะเลิศจะได้เดินทางไปประเทศญี่ปุ่นครับ ทีมแชมป์จะได้รับเชิญไปแข่งขันในรายการ "อุกะจิน คัพ" (Ugajin Cup) ที่จังหวัดไซตามะ ซึ่งจัดโดยคุณโทโมยะ อุกะจิน อดีตนักเตะทีม Urawa Reds และปัจจุบันเป็นผู้ดูแลทีม Urawa Reds U21 โดยจะได้ลงแข่งกับทีมชั้นนำจากทั่วประเทศญี่ปุ่นกว่า 30 ทีม นอกจากนี้ยังมีการชมการแข่งขัน J1 League ที่สนามจริง การฝึกซ้อมในสนามระดับมืออาชีพ และการท่องเที่ยวในโตเกียวและไซตามะครับ',
+    'จุดเด่นที่สุดของรายการนี้คือ ทีมชนะเลิศจะได้เดินทางไปประเทศญี่ปุ่นครับ ทีมแชมป์จะได้รับเชิญไปแข่งขันในรายการ "อุกะจิน คัพ" (Ugajin Cup) ที่จังหวัดไซตามะ ระหว่างวันที่ 24-25 ตุลาคม 2569 ซึ่งจัดโดยคุณโทโมยะ อุกะจิน (Tomoya Ugajin) อดีตนักเตะทีม Urawa Reds โดยจะได้ลงแข่งกับทีมชั้นนำจากทั่วประเทศญี่ปุ่นกว่า 30 ทีม กำหนดการเดินทางคือวันที่ 21-26 ตุลาคม 2569 นอกจากนี้ยังมีการชมการแข่งขัน J1 League ที่สนามไซตามะ สเตเดียม 2002 (Urawa Reds พบ JEF United Chiba) การฝึกซ้อมในสนามระดับมืออาชีพ และการท่องเที่ยวในโตเกียวและไซตามะ โดยพักในที่พักสไตล์เรียวกังของญี่ปุ่นครับ',
     '',
-    'ค่าใช้จ่ายในการเดินทางครั้งนี้ ทั้งค่าตั๋วเครื่องบิน ค่าที่พัก และค่าสมัครแข่งขัน ทางผู้จัดเป็นผู้รับผิดชอบทั้งหมดครับ โดยจะเชิญนักกีฬา 12 คน และโค้ช 2 คน รวม 14 ท่าน',
+    'ค่าใช้จ่ายในการเดินทางครั้งนี้ ทั้งค่าตั๋วเครื่องบิน ค่าที่พัก และค่าสมัครแข่งขัน ทางผู้จัดเป็นผู้รับผิดชอบทั้งหมดครับ โดยจะเชิญนักกีฬา 12 คน และโค้ช 2 คน รวม 14 ท่าน ชุดสำหรับการเดินทางได้รับการสนับสนุนจาก EGO SPORTS ครับ ทั้งนี้ผู้เดินทางต้องมีหนังสือเดินทาง (พาสปอร์ต) ที่ยังไม่หมดอายุ กรุณาตรวจสอบล่วงหน้าครับ',
     '',
     'รายละเอียดการแข่งขัน',
     '  วันที่          วันอาทิตย์ที่ 20 กันยายน 2569 เริ่มแข่ง 09:00 น. (ลงทะเบียน 08:30 น.)',
@@ -174,7 +178,8 @@ const OUTREACH_BODY = {
     '  จำนวนผู้เล่น   นักกีฬา 12 คน + โค้ช 2 คน',
     '  จำนวนทีม      32 ทีม (ตามลำดับการสมัคร)',
     '  ค่าสมัคร       3,000 บาท ต่อทีม',
-    '  ปิดรับสมัคร    วันจันทร์ที่ 31 สิงหาคม 2569',
+    '  เวลาแข่งขัน    รอบ 1-2 แข่ง 20 นาที (ไม่แบ่งครึ่ง) / ตั้งแต่รอบ 8 ทีมสุดท้าย ครึ่งละ 15 นาที',
+    '  ปิดรับสมัคร    วันอาทิตย์ที่ 30 สิงหาคม 2569',
     '',
     'ประโยชน์ที่โรงเรียนของท่านจะได้รับ',
     '',
