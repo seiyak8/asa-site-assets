@@ -101,11 +101,66 @@ function isKnownContact_(userId) {
 /**
  * 明示的な言語切替の合図。利用者がこれを送れば以後その言語で応対する。
  */
+/**
+ * 言語をはっきり指定した言い方。1語でも当たれば即座にその言語にする。
+ *
+ * ここに入れてよいのは「その言語で応対してほしい」という依頼だけ。
+ * 「英語」「タイ語」のような、日本語の文中に出てくる言語名は入れない。
+ * 「英語できますか」は英語で答えてほしいのではなく、日本語で答えてほしい
+ * 問い合わせなので、入れると取り違える。同じ理由で 'japanese' 単体ではなく
+ * 'in japanese' の形にしてある。
+ */
 const LANG_SWITCH = [
-  { lang: 'ja', words: ['日本語'] },
-  { lang: 'en', words: ['English', 'english'] },
-  { lang: 'th', words: ['ภาษาไทย', 'ไทย'] }
+  { lang: 'ja', words: ['日本語', 'にほんご', 'ニホンゴ', 'nihongo', 'in japanese', 'japanese please'] },
+  { lang: 'en', words: ['English', 'in english', 'english please'] },
+  { lang: 'th', words: ['ภาษาไทย', 'ไทย', 'pasa thai', 'phasa thai', 'in thai', 'thai please'] }
 ];
+
+/**
+ * 言語のヒント語。
+ *
+ * 文字種では決まらない文——英語の文、ローマ字書きの日本語やタイ語——を
+ * どの言語とみなすかの手がかり。2語以上当たった言語を採用する。
+ *
+ * 1語で切り替えないのは、日本語のお客様の「OK」「thanks」程度の相槌で
+ * 英語扱いになるのを避けるため。逆に「I want a refund.」のような文は
+ * 4語当たるので確実に英語になる。
+ */
+const LANG_HINT_MIN = 2;
+
+const LANG_HINTS = {
+  ja: [
+    // ローマ字書きの日本語
+    'desu', 'masu', 'desuka', 'arigatou', 'arigato', 'onegaishimasu', 'onegai',
+    'sumimasen', 'konnichiwa', 'ohayou', 'moushikomi', 'taiken', 'ikura',
+    'kodomo', 'musuko', 'musume', 'nanji', 'doko', 'itsu', 'shitai', 'hoshii'
+  ],
+  en: [
+    // よく出る機能語。文になっていればまず2語以上当たる
+    'i', 'you', 'we', 'my', 'your', 'the', 'a', 'is', 'are', 'do', 'does', 'did',
+    'can', 'could', 'would', 'will', 'want', 'need', 'have', 'has', 'not',
+    'how', 'what', 'when', 'where', 'which', 'why', 'who',
+    'and', 'for', 'to', 'with', 'about', 'from', 'this', 'that',
+    // 問い合わせでよく使う内容語
+    'please', 'thank', 'thanks', 'hello', 'sorry', 'child', 'children', 'kid',
+    'kids', 'son', 'daughter', 'age', 'old', 'year', 'years', 'time', 'day',
+    'week', 'month', 'much', 'many', 'price', 'cost', 'class', 'lesson',
+    'trial', 'schedule', 'join', 'refund', 'available', 'possible'
+  ],
+  th: [
+    // ローマ字書きのタイ語
+    'sawasdee', 'sawaddee', 'sawatdee', 'khrap', 'krap', 'kha', 'khun',
+    'chai mai', 'mai chai', 'arai', 'thao rai', 'tao rai', 'yak', 'dek', 'luk',
+    'rian', 'sonjai', 'son jai', 'mee mai', 'wan nai', 'gee mong'
+  ]
+};
+
+/** その言語のヒント語がいくつ当たったか。 */
+function countLangHints_(text, lang) {
+  return (LANG_HINTS[lang] || []).filter(function (w) {
+    return containsKeyword_(text, w);
+  }).length;
+}
 
 function getStoredLang_(userId) {
   const data = getUserLangSheet_().getDataRange().getValues();
@@ -141,16 +196,43 @@ function saveLang_(userId, lang) {
  * 3 を 4 より先に見るのが要点。タイ在住の方が英語で書いてくることは多く、
  * 一度タイ語で会話した相手には以後もタイ語で応対したい。
  */
+/**
+ * 判定の順序。上ほど強い根拠とみなす。
+ *
+ *   1. 言語を名指しした依頼（「日本語でお願いします」）
+ *   2. 文字種（タイ文字・かな）
+ *   3. ヒント語が2語以上当たった言語
+ *   4. そのお客様の前回の言語
+ *   5. 漢字があれば ja、なければ en
+ *
+ * 3 を 4 より先に置いているのが要点。以前は逆で、日本語で問い合わせた方が
+ * 次に英語で書き直しても、記憶していた日本語で返していた。英語に切り替える
+ * のは「日本語では通じなかったかもしれない」と思われたときなので、
+ * そこで日本語を返すのが一番まずい。
+ */
 function detectLanguage_(text, userId) {
   for (const entry of LANG_SWITCH) {
     for (const w of entry.words) {
-      if (text.indexOf(w) !== -1) return entry.lang;
+      if (containsKeyword_(text, w)) return entry.lang;
     }
   }
   if (/[฀-๿]/.test(text)) return 'th';
   if (/[぀-ヿ]/.test(text)) return 'ja';
 
   const stored = userId ? getStoredLang_(userId) : null;
+
+  const scores = ['ja', 'th', 'en'].map(function (lang) {
+    return { lang: lang, hits: countLangHints_(text, lang) };
+  });
+  const best = Math.max.apply(null, scores.map(function (s) { return s.hits; }));
+  if (best >= LANG_HINT_MIN) {
+    const top = scores.filter(function (s) { return s.hits === best; });
+    // 同点なら、そのお客様の前回の言語を優先する。それも決め手にならなければ
+    // ja → th → en の順（scores の並び順）で先頭を採る。
+    const keep = top.filter(function (s) { return s.lang === stored; });
+    return (keep.length ? keep[0] : top[0]).lang;
+  }
+
   if (stored) return stored;
 
   if (/[一-鿿]/.test(text)) return 'ja';
@@ -169,10 +251,22 @@ const TRIAL_FORM = {
 const SCENE1_TRIAL_INQUIRY = {
   ja: {
     keywords: [
-      'はじめまして', '初めまして', 'こんにちは', '日本語',
-      '体験', 'たいけん', 'トライアル', '申し込み', '申込', 'もうしこみ',
-      '入会', 'レッスン', 'クラス', '見学', '習い事',
-      'サッカー', '体操', '陸上', '教室'
+      // あいさつ・書き出し
+      'はじめまして', '初めまして', 'こんにちは', 'こんばんは', 'おはよう',
+      '日本語', '問い合わせ', 'お聞きしたい', '質問', '教えてください', '教えて',
+      // 体験・入会
+      '体験', 'たいけん', 'トライアル', 'お試し', '申し込み', '申込', 'もうしこみ',
+      '入会', '入りたい', '通いたい', '始めたい', 'はじめたい', '興味', '検討',
+      'レッスン', 'クラス', '見学', '習い事', '習わせ', '参加',
+      // 料金
+      '料金', '費用', '月謝', '入会金', 'いくら', '価格', '会費', 'プラン',
+      // 日時・場所
+      '日程', '曜日', '時間', '何時', 'スケジュール', '空き', '予約',
+      '場所', '住所', 'アクセス', '行き方', '駐車場',
+      // 対象・種目
+      '何歳', '年齢', '対象', '幼児', '小学生', '子ども', '子供',
+      'サッカー', 'フットサル', '体操', '陸上', 'かけっこ', '走り方',
+      '運動', 'スポーツ', '教室', 'コーチ'
     ],
     body:
       '初めまして！\n' +
@@ -185,10 +279,24 @@ const SCENE1_TRIAL_INQUIRY = {
   en: {
     // 照合は containsKeyword_ が大文字小文字を無視し、単語境界で行う
     keywords: [
-      'English', 'hello', 'hi', 'trial', 'apply', 'application',
-      'join', 'class', 'classes', 'lesson', 'lessons', 'enroll', 'register',
-      'interested', 'football', 'soccer', 'gymnastics', 'athletics', 'academy',
-      'price', 'fee', 'fees', 'cost', 'schedule'
+      // greetings / openers
+      'English', 'hello', 'hi', 'good morning', 'good evening',
+      'inquiry', 'enquiry', 'question', 'asking', 'wondering',
+      // trial / joining
+      'trial', 'try', 'apply', 'application', 'sign up', 'signup',
+      'join', 'joining', 'enroll', 'enrol', 'register', 'registration',
+      'class', 'classes', 'lesson', 'lessons', 'session', 'sessions',
+      'membership', 'member', 'interested', 'start', 'visit', 'watch',
+      'book', 'booking', 'reserve', 'available', 'availability',
+      // pricing
+      'price', 'prices', 'fee', 'fees', 'cost', 'how much', 'monthly', 'ticket',
+      // time / place
+      'schedule', 'timetable', 'time', 'times', 'day', 'days', 'when',
+      'where', 'location', 'address', 'parking', 'directions',
+      // who / what
+      'age', 'ages', 'old', 'child', 'children', 'kid', 'kids', 'son', 'daughter',
+      'football', 'soccer', 'futsal', 'gymnastics', 'athletics', 'running',
+      'sport', 'sports', 'academy', 'coach', 'training'
     ],
     body:
       'Thanks for reaching out about a trial lesson!\n' +
@@ -199,8 +307,20 @@ const SCENE1_TRIAL_INQUIRY = {
   },
   th: {
     keywords: [
-      'ภาษาไทย', 'ไทย', 'สวัสดี', 'ทดลอง', 'สมัคร', 'สนใจ', 'เรียน',
-      'คลาส', 'ราคา', 'ค่าเรียน', 'ตาราง', 'ฟุตบอล', 'ยิมนาสติก', 'กรีฑา'
+      // ทักทาย / สอบถาม
+      'ภาษาไทย', 'ไทย', 'สวัสดี', 'สอบถาม', 'อยากทราบ', 'ขอถาม', 'คำถาม',
+      // ทดลองเรียน / สมัคร
+      'ทดลอง', 'ทดลองเรียน', 'สมัคร', 'สมัครเรียน', 'สนใจ', 'สนใจเรียน',
+      'อยากเรียน', 'เรียน', 'คลาส', 'เข้าร่วม', 'จอง', 'ว่าง', 'ดูการเรียน',
+      'สมาชิก', 'เริ่มเรียน',
+      // ราคา
+      'ราคา', 'ค่าเรียน', 'ค่าใช้จ่าย', 'เท่าไหร่', 'เท่าไร', 'รายเดือน', 'ฟรี',
+      // เวลา / สถานที่
+      'ตาราง', 'ตารางเรียน', 'เวลา', 'กี่โมง', 'วันไหน', 'ที่ไหน', 'สถานที่',
+      'ที่อยู่', 'ที่จอดรถ',
+      // ใคร / อะไร
+      'กี่ขวบ', 'อายุ', 'ลูก', 'เด็ก',
+      'ฟุตบอล', 'ฟุตซอล', 'ยิมนาสติก', 'กรีฑา', 'วิ่ง', 'กีฬา', 'โค้ช'
     ],
     body:
       'ขอบคุณที่สอบถามเกี่ยวกับคลาสทดลองเรียนค่ะ\n' +
@@ -215,10 +335,27 @@ const SCENE1_TRIAL_INQUIRY = {
  * フォーム入力完了の申告メッセージ
  * ============================================================ */
 
+/**
+ * 「フォームを出しました」の申告。
+ *
+ * 当たると持ち物案内（シーン2）を返す。出していない人に送ると話が噛み合わない
+ * ので、英語は 'done' のような単独語を入れず、フォームを指す句の形にしてある。
+ */
 const FORM_COMPLETION_KEYWORDS = {
-  ja: ['完了', '送信しました', '送りました', '提出しました', '入力しました', '記入しました'],
-  en: ['completed', 'submitted', 'finished the form', 'done with the form', 'filled out', 'filled in'],
-  th: ['เสร็จ', 'ส่งแล้ว', 'กรอกแล้ว']
+  ja: [
+    '完了', '送信しました', '送りました', '提出しました', '入力しました',
+    '記入しました', '書きました', '出しました', '送信済', '送信完了',
+    '申し込みました', '申込みました', '登録しました', 'できました'
+  ],
+  en: [
+    'completed', 'submitted', 'finished the form', 'done with the form',
+    'filled out', 'filled in', 'sent the form', 'sent it', 'form is done',
+    'all done', 'just applied', 'application sent'
+  ],
+  th: [
+    'เสร็จ', 'ส่งแล้ว', 'กรอกแล้ว', 'กรอกฟอร์มแล้ว', 'ส่งฟอร์มแล้ว',
+    'สมัครแล้ว', 'เรียบร้อย'
+  ]
 };
 
 function isFormCompletionMessage_(text, lang) {
@@ -233,15 +370,53 @@ function isFormCompletionMessage_(text, lang) {
  * 自動返信せず、Queue の担当者欄に印を付けてスタッフに回す。
  */
 
+/**
+ * ここに語を足すと、その語を含む問い合わせには自動返信しなくなる。
+ * 増やしすぎると、体験の申し込みまで人待ちになって申込率が落ちる。
+ * 「答えを間違えると実害が出る話」に限ること。
+ *
+ * 意図的に外している語：
+ *   '熱'   … 「情熱」「熱心」に当たる。発熱は '発熱' で拾う
+ *   '謝'   … 「感謝しています」に当たる。'謝罪' の形で拾う
+ *   'stop' … 「何時に stop しますか」に当たる
+ *   'charge' … 「How much do you charge?」は料金の質問で、人手は要らない
+ *   'แพ้'  … タイ語では「試合に負ける」の意味にもなる。'แพ้อาหาร' で拾う
+ */
 const ESCALATION_KEYWORDS = [
-  // 日本語
-  '返金', '解約', '退会', 'やめたい', '辞めたい', 'キャンセル', '苦情', 'クレーム',
-  '怪我', 'けが', 'ケガ', '事故', '救急', '病院', '返してほしい', '値引き', '割引',
-  // English
-  'refund', 'cancel', 'quit', 'withdraw', 'complaint', 'injury', 'injured',
-  'accident', 'hospital', 'discount', 'money back',
-  // ไทย
-  'คืนเงิน', 'ยกเลิก', 'ลาออก', 'ร้องเรียน', 'บาดเจ็บ', 'อุบัติเหตุ', 'ส่วนลด'
+  // 日本語：お金
+  '返金', '払い戻し', '返してほしい', '値引き', '割引', '請求', '二重請求',
+  '引き落とし', '未払い', '料金が違', '高すぎ',
+  // 日本語：やめる・休む
+  '解約', '退会', 'やめたい', '辞めたい', 'キャンセル', '休会', '休みたい',
+  '振替', '返品', '転校', '引っ越し',
+  // 日本語：苦情
+  '苦情', 'クレーム', 'ひどい', '最悪', '不満', '責任', '謝罪', '訴え', '弁償',
+  'いじめ', '差別', '個人情報',
+  // 日本語：安全・体調
+  '怪我', 'けが', 'ケガ', '事故', '救急', '病院', '骨折', '捻挫', '出血',
+  '発熱', '体調', '具合が悪', 'アレルギー', '喘息', '発作', '虐待',
+  // English: money
+  'refund', 'money back', 'reimburse', 'overcharged', 'double charged',
+  'billing', 'invoice', 'discount', 'too expensive',
+  // English: leaving / pausing
+  'cancel', 'quit', 'withdraw', 'unsubscribe', 'terminate', 'pause',
+  'freeze', 'suspend', 'moving away',
+  // English: complaint
+  'complaint', 'complain', 'unhappy', 'disappointed', 'terrible', 'awful',
+  'worst', 'rude', 'bullying', 'bullied', 'lawyer', 'legal action', 'sue',
+  // English: safety / health
+  'injury', 'injured', 'accident', 'hospital', 'emergency', 'ambulance',
+  'fracture', 'sprained', 'bleeding', 'fever', 'sick', 'allergy', 'allergic',
+  'asthma', 'seizure',
+  // ไทย: เงิน
+  'คืนเงิน', 'เงินคืน', 'ส่วนลด', 'ค่าเสียหาย', 'เรียกเก็บเงินซ้ำ', 'แพงเกินไป',
+  // ไทย: หยุด / ยกเลิก
+  'ยกเลิก', 'ลาออก', 'หยุดเรียน', 'พักเรียน', 'เลื่อนเรียน', 'ย้ายบ้าน',
+  // ไทย: ร้องเรียน
+  'ร้องเรียน', 'ไม่พอใจ', 'แย่มาก', 'ทนาย', 'กลั่นแกล้ง',
+  // ไทย: ความปลอดภัย / สุขภาพ
+  'บาดเจ็บ', 'อุบัติเหตุ', 'โรงพยาบาล', 'ป่วย', 'ไข้', 'กระดูกหัก', 'เลือดออก',
+  'แพ้อาหาร', 'หอบหืด'
 ];
 
 /**
