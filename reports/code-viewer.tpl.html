@@ -122,18 +122,13 @@
       <strong>Code.gs</strong> … LINE 自動応答。貼り替え後は <code>checkProperties()</code> を実行し、
       ラベルが <code>LINE_CHANNEL_ACCESS_TOKEN:</code> に変わることを確認。<br>
       <strong>MetaInsights.gs</strong> … 広告と Instagram の日次取得。<em>新規ファイル</em>として追加し、
-      <code>testMetaConnection()</code> → <code>backfillMeta(90)</code> → <code>setupMetaTriggers()</code> の順に実行。<br>
-      <strong>Outreach.gs</strong> … 学校向け営業メールの差し込み送信。<em>新規ファイル</em>として追加。
-      <strong>既定では1通も送りません</strong>（<code>DRY_RUN = true</code>）。
-      <code>setupOutreachSheet()</code> → 名簿を入力 → <code>previewOutreach()</code> →
-      <code>sendOutreachBatch()</code> で空撃ち確認してから本番へ。
+      <code>testMetaConnection()</code> → <code>backfillMeta(90)</code> → <code>setupMetaTriggers()</code> の順に実行。
     </p>
   </div>
 
   <div class="tabs" role="tablist">
     <button class="tab" role="tab" aria-selected="true" aria-controls="p-code" id="t-code">Code.gs</button>
     <button class="tab" role="tab" aria-selected="false" aria-controls="p-meta" id="t-meta">MetaInsights.gs</button>
-    <button class="tab" role="tab" aria-selected="false" aria-controls="p-out" id="t-out">Outreach.gs</button>
     <button class="tab" role="tab" aria-selected="false" aria-controls="p-doc" id="t-doc">README</button>
   </div>
 
@@ -153,14 +148,6 @@
     <div class="codebox"><pre class="code"><code id="src-meta">{{META_CODE}}</code></pre></div>
   </div>
 
-  <div class="panel" id="p-out" role="tabpanel" aria-labelledby="t-out">
-    <div class="bar">
-      <span class="meta">Outreach.gs — {{OUT_LINES}} 行</span>
-      <button class="copy" data-copy="src-out">コードをコピー</button>
-    </div>
-    <div class="codebox"><pre class="code"><code id="src-out">{{OUT_CODE}}</code></pre></div>
-  </div>
-
   <div class="panel" id="p-doc" role="tabpanel" aria-labelledby="t-doc">
     <div class="doc">{{README}}</div>
   </div>
@@ -170,8 +157,7 @@
 <script>
   const SOURCES = {
     'src-code': {{CODE_JSON}},
-    'src-meta': {{META_CODE_JSON}},
-    'src-out': {{OUT_CODE_JSON}}
+    'src-meta': {{META_CODE_JSON}}
   };
 
   const tabs = [...document.querySelectorAll('.tab')];
