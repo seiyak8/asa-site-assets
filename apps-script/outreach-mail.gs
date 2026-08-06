@@ -53,6 +53,13 @@ const DRY_RUN = true;
 /** 1回の実行で送る上限。Gmailの1日あたり上限に当てないための刻み。 */
 const BATCH_SIZE = 40;
 
+/**
+ * 1回の実行で作る下書きの上限。
+ * 添付が3枚で約9MBあり、1通あたり数秒かかる。Apps Scriptの実行時間は6分
+ * までなので、少なめに刻んでおく。残りは同じ関数をもう一度実行すれば続く。
+ */
+const DRAFT_BATCH_SIZE = 12;
+
 /** 送信元の表示名。受け取る側に誰からか一目で分かるようにする。 */
 const SENDER_NAME = 'Advance Sports Academy — Seiya Kojima';
 
@@ -408,7 +415,7 @@ function createOutreachDrafts() {
     let created = 0;
     let skipped = 0;
 
-    for (let i = 1; i < data.length && created < BATCH_SIZE; i++) {
+    for (let i = 1; i < data.length && created < DRAFT_BATCH_SIZE; i++) {
       const rowNumber = i + 1;
       const issue = outreachRowIssue_(data[i]);
 
@@ -454,6 +461,10 @@ function createOutreachDrafts() {
     Logger.log('--- 完了 ---');
     Logger.log('下書きを ' + created + '件作成しました（1通も送信していません） / スキップ ' +
                skipped + '件');
+    if (created >= DRAFT_BATCH_SIZE) {
+      Logger.log('★ 上限（' + DRAFT_BATCH_SIZE +
+                 '件）に達しました。残りを作るには、もう一度この関数を実行してください。');
+    }
     Logger.log('Gmailの「下書き」を開いて内容を確認し、問題なければ送信してください。');
     Logger.log('※ 送信後は該当行の status を手動で sent に変えておくと、集計が合います。');
   } finally {
