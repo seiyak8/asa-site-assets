@@ -1,0 +1,200 @@
+<title>ASA Apps Script — 貼り付け用</title>
+<style>
+  :root {
+    --accent: #1BAFC9;
+    --accent-deep: #0E8FA6;
+    --good: #2E9E6B;
+    --bg: #F7FAFB;
+    --surface: #FFFFFF;
+    --surface-2: #EFF5F7;
+    --code-bg: #FBFDFD;
+    --ink: #0B0F14;
+    --ink-2: #3D4A52;
+    --ink-3: #6B7A82;
+    --rule: #DDE6E9;
+    --rule-strong: #C3D2D7;
+    --gutter: #96A6AE;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --accent: #3FC6DE; --accent-deep: #7BDCEC; --good: #4FBF8B;
+      --bg: #0B0F14; --surface: #141A21; --surface-2: #1B242C; --code-bg: #10161C;
+      --ink: #EDF3F5; --ink-2: #B3C1C8; --ink-3: #7F8F98;
+      --rule: #24303A; --rule-strong: #33424E; --gutter: #56666F;
+    }
+  }
+  :root[data-theme="dark"] {
+    --accent: #3FC6DE; --accent-deep: #7BDCEC; --good: #4FBF8B;
+    --bg: #0B0F14; --surface: #141A21; --surface-2: #1B242C; --code-bg: #10161C;
+    --ink: #EDF3F5; --ink-2: #B3C1C8; --ink-3: #7F8F98;
+    --rule: #24303A; --rule-strong: #33424E; --gutter: #56666F;
+  }
+  :root[data-theme="light"] {
+    --accent: #1BAFC9; --accent-deep: #0E8FA6; --good: #2E9E6B;
+    --bg: #F7FAFB; --surface: #FFFFFF; --surface-2: #EFF5F7; --code-bg: #FBFDFD;
+    --ink: #0B0F14; --ink-2: #3D4A52; --ink-3: #6B7A82;
+    --rule: #DDE6E9; --rule-strong: #C3D2D7; --gutter: #96A6AE;
+  }
+
+  body {
+    margin: 0; background: var(--bg); color: var(--ink-2);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Hiragino Sans",
+                 "Hiragino Kaku Gothic ProN", "Yu Gothic", "Noto Sans JP", Meiryo, sans-serif;
+    line-height: 1.75; -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 1000px; margin: 0 auto; padding: 28px 18px 70px; display: flex; flex-direction: column; gap: 22px; }
+
+  h1,h2,h3 { color: var(--ink); margin: 0; letter-spacing: -.015em; line-height: 1.35; text-wrap: balance; }
+  h1 { font-size: 1.5rem; font-weight: 700; }
+  h2 { font-size: 1.1rem; font-weight: 700; margin-top: 12px; }
+  h3 { font-size: .95rem; font-weight: 700; margin-top: 8px; }
+  p { margin: 0; font-size: .92rem; }
+  strong { color: var(--ink); font-weight: 700; }
+  hr { border: 0; border-top: 1px solid var(--rule); margin: 6px 0; }
+  ul { margin: 0; padding-left: 1.2em; display: flex; flex-direction: column; gap: 5px; font-size: .92rem; }
+
+  header.top { border-bottom: 2px solid var(--ink); padding-bottom: 14px; display: flex; flex-direction: column; gap: 6px; }
+  .eyebrow { font-size: .68rem; font-weight: 700; letter-spacing: .13em; text-transform: uppercase; color: var(--accent-deep); }
+  .sub { font-size: .82rem; color: var(--ink-3); }
+
+  .steps { background: var(--surface); border: 1px solid var(--rule); border-left: 4px solid var(--accent); border-radius: 3px; padding: 16px 20px; display: flex; flex-direction: column; gap: 8px; }
+  .steps ol { margin: 0; padding-left: 1.3em; display: flex; flex-direction: column; gap: 5px; font-size: .92rem; }
+
+  .tabs { display: flex; gap: 6px; border-bottom: 1px solid var(--rule-strong); }
+  .tab {
+    appearance: none; border: 1px solid var(--rule); border-bottom: 0; background: var(--surface-2);
+    color: var(--ink-3); font: inherit; font-size: .86rem; font-weight: 700;
+    padding: 8px 18px; border-radius: 3px 3px 0 0; cursor: pointer; margin-bottom: -1px;
+  }
+  .tab[aria-selected="true"] { background: var(--surface); color: var(--ink); border-bottom: 1px solid var(--surface); }
+  .tab:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  .panel { display: none; flex-direction: column; gap: 14px; }
+  .panel.active { display: flex; }
+
+  .bar { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; justify-content: space-between; }
+  .bar .meta { font-size: .8rem; color: var(--ink-3); font-variant-numeric: tabular-nums; }
+  .copy {
+    appearance: none; border: 0; border-radius: 3px; cursor: pointer;
+    background: var(--accent-deep); color: #fff; font: inherit; font-size: .86rem; font-weight: 700;
+    padding: 9px 20px;
+  }
+  .copy:hover { filter: brightness(1.08); }
+  .copy:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+  .copy.done { background: var(--good); }
+
+  .codebox {
+    background: var(--code-bg); border: 1px solid var(--rule); border-radius: 3px;
+    max-height: 68vh; overflow: auto;
+  }
+  pre.code {
+    margin: 0; padding: 14px 16px;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Noto Sans Mono", monospace;
+    font-size: 12.5px; line-height: 1.65; color: var(--ink-2);
+    tab-size: 2; white-space: pre;
+  }
+  pre.code code { display: block; }
+
+  .doc { background: var(--surface); border: 1px solid var(--rule); border-radius: 3px; padding: 20px 24px; display: flex; flex-direction: column; gap: 10px; }
+  .doc code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: .86em; background: var(--surface-2); padding: 1px 5px; border-radius: 3px; color: var(--ink); }
+  pre.blk { margin: 0; background: var(--code-bg); border: 1px solid var(--rule); border-radius: 3px; padding: 12px 14px; overflow-x: auto; }
+  pre.blk code { background: none; padding: 0; font-size: 12.5px; line-height: 1.6; }
+
+  .hint { font-size: .82rem; color: var(--ink-3); }
+</style>
+
+<div class="wrap">
+
+  <header class="top">
+    <span class="eyebrow">Advance Sports Academy</span>
+    <h1>Apps Script 貼り付け用</h1>
+    <span class="sub">タブでファイルを選び、「コードをコピー」で GASエディタに貼り付けてください</span>
+  </header>
+
+  <div class="steps">
+    <h2>貼り替え手順</h2>
+    <ol>
+      <li>タブでファイルを選び、<strong>コードをコピー</strong>を押す</li>
+      <li>GASエディタで<strong>同じ名前のファイル</strong>を開く（無ければ左の「ファイル ＋」で作る）</li>
+      <li>中身を<strong>全選択（Ctrl/⌘ + A）して削除</strong>し、貼り付け（Ctrl/⌘ + V）して保存</li>
+    </ol>
+    <p class="hint">
+      <strong>Code.gs</strong> … LINE 自動応答。貼り替え後は <code>checkProperties()</code> を実行し、
+      ラベルが <code>LINE_CHANNEL_ACCESS_TOKEN:</code> に変わることを確認。<br>
+      <strong>MetaInsights.gs</strong> … 広告と Instagram の日次取得。<em>新規ファイル</em>として追加し、
+      <code>testMetaConnection()</code> → <code>backfillMeta(90)</code> → <code>setupMetaTriggers()</code> の順に実行。
+    </p>
+  </div>
+
+  <div class="tabs" role="tablist">
+    <button class="tab" role="tab" aria-selected="true" aria-controls="p-code" id="t-code">Code.gs</button>
+    <button class="tab" role="tab" aria-selected="false" aria-controls="p-meta" id="t-meta">MetaInsights.gs</button>
+    <button class="tab" role="tab" aria-selected="false" aria-controls="p-doc" id="t-doc">README</button>
+  </div>
+
+  <div class="panel active" id="p-code" role="tabpanel" aria-labelledby="t-code">
+    <div class="bar">
+      <span class="meta">Code.gs — {{LINES}} 行</span>
+      <button class="copy" data-copy="src-code">コードをコピー</button>
+    </div>
+    <div class="codebox"><pre class="code"><code id="src-code">{{CODE}}</code></pre></div>
+  </div>
+
+  <div class="panel" id="p-meta" role="tabpanel" aria-labelledby="t-meta">
+    <div class="bar">
+      <span class="meta">MetaInsights.gs — {{META_LINES}} 行</span>
+      <button class="copy" data-copy="src-meta">コードをコピー</button>
+    </div>
+    <div class="codebox"><pre class="code"><code id="src-meta">{{META_CODE}}</code></pre></div>
+  </div>
+
+  <div class="panel" id="p-doc" role="tabpanel" aria-labelledby="t-doc">
+    <div class="doc">{{README}}</div>
+  </div>
+
+</div>
+
+<script>
+  const SOURCES = {
+    'src-code': {{CODE_JSON}},
+    'src-meta': {{META_CODE_JSON}}
+  };
+
+  const tabs = [...document.querySelectorAll('.tab')];
+  tabs.forEach(function (tab) {
+    tab.addEventListener('click', function () {
+      tabs.forEach(function (t) {
+        const on = t === tab;
+        t.setAttribute('aria-selected', on ? 'true' : 'false');
+        document.getElementById(t.getAttribute('aria-controls')).classList.toggle('active', on);
+      });
+    });
+  });
+
+  document.querySelectorAll('.copy').forEach(function (btn) {
+    btn.addEventListener('click', async function () {
+      const text = SOURCES[btn.dataset.copy];
+      let ok = false;
+      try {
+        await navigator.clipboard.writeText(text);
+        ok = true;
+      } catch (err) {
+        // クリップボードAPIが使えない環境向けのフォールバック
+        const ta = document.createElement('textarea');
+        ta.value = text;
+        ta.style.position = 'fixed';
+        ta.style.opacity = '0';
+        document.body.appendChild(ta);
+        ta.select();
+        try { ok = document.execCommand('copy'); } catch (e2) { ok = false; }
+        document.body.removeChild(ta);
+      }
+      btn.textContent = ok ? '✓ コピーしました' : 'コピーできません — 手動で選択してください';
+      btn.classList.toggle('done', ok);
+      setTimeout(function () {
+        btn.textContent = 'コードをコピー';
+        btn.classList.remove('done');
+      }, 2600);
+    });
+  });
+</script>
