@@ -21,18 +21,26 @@
  *   B: email       … 送信先。空欄の行は自動でスキップ
  *   C: lang        … ja / en / th
  *   D: contact     … 担当部署や担当者名（任意。メモ用途）
- *   E: status      … 空欄=未送信 / sent / skipped / error
+ *   E: status      … 空欄=未処理 / draft / sent / skipped / error
  *   F: sentAt      … 送信日時
  *   G: note        … エラー内容や備考
  *
  * ============================================================
  * 実行の順序
  * ============================================================
- *   1. setupOutreachSheet()   … シートを用意する（初回のみ）
+ * 【推奨】下書きを作って、人が確認してから手で送る
+ *   1. setupOutreachSheet()        … シートを用意する（初回のみ）
  *   2. 学校名とアドレスを人が入力する
- *   3. previewOutreach()      … 1通目の本文を実物どおりに確認
- *   4. sendOutreachBatch()    … DRY_RUN=true のまま実行し、ログを確認
- *   5. DRY_RUN を false にして sendOutreachBatch() を実行（本番）
+ *   3. previewOutreach()           … 1通目の本文を実物どおりに確認
+ *   4. checkOutreachAttachments()  … 添付3枚が取得できるか確認
+ *   5. createOutreachDrafts()      … Gmailに下書きを作る（1通も送らない）
+ *   6. Gmailの「下書き」を開いて確認し、自分で送信する
+ *
+ * 【一括送信】確認を済ませたうえで、まとめて送る
+ *   7. sendOutreachBatch()         … DRY_RUN=true のまま実行し、ログを確認
+ *   8. DRY_RUN を false にして sendOutreachBatch() を実行（本番）
+ *
+ * 添付ファイル（3枚・約9MB）は下書き・本番送信のどちらにも付く。
  */
 
 /* ============================================================
@@ -51,6 +59,30 @@ const SENDER_NAME = 'Advance Sports Academy — Seiya Kojima';
 const SHEET_OUTREACH = 'Outreach';
 const OUTREACH_HEADER =
   ['schoolName', 'email', 'lang', 'contact', 'status', 'sentAt', 'note'];
+
+/* ============================================================
+ * 添付ファイル
+ * ============================================================
+ * GitHub 上のPNGを取得して添付する。3枚で約9MB（Gmailの上限は25MB）。
+ * 差し替えるときは url と、受け取る側に見えるファイル名 name を直す。
+ *
+ * ※ url の日本語部分はエンコード済み。手打ちせず、GitHubで対象ファイルを
+ *   開いて Raw のURLをコピーすること。
+ */
+const OUTREACH_ATTACHMENTS = [
+  {
+    name: 'KOJIMA_JAPAN_CUP_Flyer_EN.png',
+    url: 'https://raw.githubusercontent.com/seiyak8/asa-site-assets/main/assets/images/Kojima%20Cup%20flyer%20EN.png'
+  },
+  {
+    name: 'KOJIMA_JAPAN_CUP_Brochure_Thailand_EN.png',
+    url: 'https://raw.githubusercontent.com/seiyak8/asa-site-assets/main/assets/images/Kojima%20cup%20%E3%83%8F%E3%82%9A%E3%83%B3%E3%83%95%E3%83%AC%E3%83%83%E3%83%88%20in%20Thai%20%E8%8B%B1%E8%AA%9E.png'
+  },
+  {
+    name: 'KOJIMA_JAPAN_CUP_Brochure_Japan_EN.png',
+    url: 'https://raw.githubusercontent.com/seiyak8/asa-site-assets/main/assets/images/Kojima%20Cup%E3%83%8F%E3%82%9A%E3%83%B3%E3%83%95%E3%83%AC%E3%83%83%E3%83%88%20in%20Japan%20%E8%8B%B1%E8%AA%9E.png'
+  }
+];
 
 /* ============================================================
  * 文面（{{SCHOOL}} に学校名が入る）
@@ -242,6 +274,47 @@ function setupOutreachSheet() {
 }
 
 /* ============================================================
+ * 添付ファイルの取得
+ * ============================================================ */
+
+/** 1回の実行で取りに行くのは1度だけ。以降は同じものを使い回す。 */
+let outreachAttachmentCache_ = null;
+
+/**
+ * 添付するPNGを取得する。
+ * 取れなかった場合はここで止める。添付なしのメールが出ていくほうが困るため。
+ */
+function getOutreachAttachments_() {
+  if (outreachAttachmentCache_) return outreachAttachmentCache_;
+
+  const blobs = OUTREACH_ATTACHMENTS.map(function (file) {
+    const res = UrlFetchApp.fetch(file.url, { muteHttpExceptions: true });
+    if (res.getResponseCode() !== 200) {
+      throw new Error('添付ファイルを取得できませんでした（HTTP ' +
+                      res.getResponseCode() + '）: ' + file.name + ' / ' + file.url);
+    }
+    return res.getBlob().setName(file.name);
+  });
+
+  let total = 0;
+  blobs.forEach(function (b) { total += b.getBytes().length; });
+  Logger.log('添付ファイル ' + blobs.length + '件 / 合計 ' +
+             (total / 1048576).toFixed(2) + ' MB');
+
+  outreachAttachmentCache_ = blobs;
+  return blobs;
+}
+
+/** 添付ファイルが取得できるかだけを確かめる。下書き作成の前の下見用。 */
+function checkOutreachAttachments() {
+  const blobs = getOutreachAttachments_();
+  blobs.forEach(function (b) {
+    Logger.log('OK ' + b.getName() + ' / ' +
+               (b.getBytes().length / 1048576).toFixed(2) + ' MB');
+  });
+}
+
+/* ============================================================
  * 差し込み
  * ============================================================ */
 
@@ -267,6 +340,7 @@ function outreachRowIssue_(row) {
   const status = (row[4] || '').toString().trim().toLowerCase();
 
   if (status === 'sent') return '送信済み';
+  if (status === 'draft') return '下書き作成済み';
   if (status === 'skipped') return '除外指定';
   if (!schoolName) return '学校名が空';
   if (!email) return 'メールアドレスが空';
@@ -298,6 +372,96 @@ function previewOutreach() {
 }
 
 /* ============================================================
+ * 下書きの作成
+ * ============================================================ */
+
+/**
+ * 未処理の行について、Gmailの下書きを作る。1通も送信しない。
+ *
+ * 下書きなので DRY_RUN の設定に関係なく実行できる。実際に出すかどうかは
+ * Gmailの下書きを開いて人が判断する。
+ *
+ * 作成した行は status に draft が入り、次回の実行では飛ばされる。
+ * 途中で時間切れになっても、もう一度実行すれば続きから作られる。
+ */
+function createOutreachDrafts() {
+  const lock = LockService.getScriptLock();
+  if (!lock.tryLock(30 * 1000)) {
+    Logger.log('別の処理が実行中のため中止しました。');
+    return;
+  }
+
+  try {
+    const sheet = getOutreachSheet_();
+    const data = sheet.getDataRange().getValues();
+    const attachments = getOutreachAttachments_();
+
+    // 既に下書き済み・送信済みのアドレスを集める。行が重複しても二重に作らない。
+    const done = {};
+    for (let i = 1; i < data.length; i++) {
+      const status = (data[i][4] || '').toString().trim().toLowerCase();
+      if (status === 'sent' || status === 'draft') {
+        done[(data[i][1] || '').toString().trim().toLowerCase()] = true;
+      }
+    }
+
+    let created = 0;
+    let skipped = 0;
+
+    for (let i = 1; i < data.length && created < BATCH_SIZE; i++) {
+      const rowNumber = i + 1;
+      const issue = outreachRowIssue_(data[i]);
+
+      if (issue) {
+        if (issue !== '送信済み' && issue !== '下書き作成済み' && issue !== '除外指定') {
+          Logger.log(rowNumber + '行目 スキップ: ' + issue);
+          skipped++;
+        }
+        continue;
+      }
+
+      const schoolName = data[i][0].toString().trim();
+      const email = data[i][1].toString().trim();
+      const lang = data[i][2].toString().trim().toLowerCase();
+
+      if (done[email.toLowerCase()]) {
+        Logger.log(rowNumber + '行目 スキップ: 同じアドレスで作成済み ' + email);
+        sheet.getRange(rowNumber, 5).setValue('skipped');
+        sheet.getRange(rowNumber, 7).setValue('重複アドレス');
+        skipped++;
+        continue;
+      }
+
+      const mail = buildOutreachMail_(schoolName, lang);
+
+      try {
+        GmailApp.createDraft(email, mail.subject, mail.body, {
+          name: SENDER_NAME,
+          attachments: attachments
+        });
+        sheet.getRange(rowNumber, 5).setValue('draft');
+        sheet.getRange(rowNumber, 7).setValue('下書き作成済み（未送信）');
+        done[email.toLowerCase()] = true;
+        created++;
+        Logger.log('下書き作成 ' + email + ' / ' + schoolName);
+      } catch (err) {
+        sheet.getRange(rowNumber, 5).setValue('error');
+        sheet.getRange(rowNumber, 7).setValue(err.message);
+        Logger.log('★ 下書き作成失敗 ' + email + ' : ' + err.message);
+      }
+    }
+
+    Logger.log('--- 完了 ---');
+    Logger.log('下書きを ' + created + '件作成しました（1通も送信していません） / スキップ ' +
+               skipped + '件');
+    Logger.log('Gmailの「下書き」を開いて内容を確認し、問題なければ送信してください。');
+    Logger.log('※ 送信後は該当行の status を手動で sent に変えておくと、集計が合います。');
+  } finally {
+    lock.releaseLock();
+  }
+}
+
+/* ============================================================
  * 送信
  * ============================================================ */
 
@@ -317,6 +481,7 @@ function sendOutreachBatch() {
   try {
     const sheet = getOutreachSheet_();
     const data = sheet.getDataRange().getValues();
+    const attachments = DRY_RUN ? [] : getOutreachAttachments_();
 
     // 送信済みのアドレスを先に集める。行が重複していても二重送信しない。
     const alreadySent = {};
@@ -335,7 +500,7 @@ function sendOutreachBatch() {
       const issue = outreachRowIssue_(data[i]);
 
       if (issue) {
-        if (issue !== '送信済み' && issue !== '除外指定') {
+        if (issue !== '送信済み' && issue !== '下書き作成済み' && issue !== '除外指定') {
           Logger.log(rowNumber + '行目 スキップ: ' + issue);
           skipped++;
         }
@@ -367,7 +532,10 @@ function sendOutreachBatch() {
       }
 
       try {
-        GmailApp.sendEmail(email, mail.subject, mail.body, { name: SENDER_NAME });
+        GmailApp.sendEmail(email, mail.subject, mail.body, {
+          name: SENDER_NAME,
+          attachments: attachments
+        });
         sheet.getRange(rowNumber, 5).setValue('sent');
         sheet.getRange(rowNumber, 6).setValue(now);
         alreadySent[email.toLowerCase()] = true;
@@ -399,19 +567,40 @@ function sendOutreachBatch() {
 /** 送信状況の集計。どこまで進んだかを確認する。 */
 function outreachStatus() {
   const data = getOutreachSheet_().getDataRange().getValues();
-  const count = { sent: 0, error: 0, skipped: 0, pending: 0 };
+  const count = { sent: 0, draft: 0, error: 0, skipped: 0, pending: 0 };
 
   for (let i = 1; i < data.length; i++) {
     const schoolName = (data[i][0] || '').toString().trim();
     if (!schoolName) continue;
     const status = (data[i][4] || '').toString().trim().toLowerCase();
     if (status === 'sent') count.sent++;
+    else if (status === 'draft') count.draft++;
     else if (status === 'error') count.error++;
     else if (status === 'skipped') count.skipped++;
     else count.pending++;
   }
 
-  Logger.log('送信済み ' + count.sent + ' / 未送信 ' + count.pending +
+  Logger.log('送信済み ' + count.sent + ' / 下書き ' + count.draft +
+             ' / 未処理 ' + count.pending +
              ' / 失敗 ' + count.error + ' / 除外 ' + count.skipped);
   if (count.error) Logger.log('★ 失敗した行は note 列に理由が入っています。');
+}
+
+/* ============================================================
+ * スプレッドシートのメニュー
+ * ============================================================ */
+
+/** スプレッドシートを開いたときに、専用メニューを出す。 */
+function onOpen() {
+  SpreadsheetApp.getUi()
+    .createMenu('営業メール')
+    .addItem('① シートを用意する', 'setupOutreachSheet')
+    .addItem('② 1通目の本文を確認する', 'previewOutreach')
+    .addItem('③ 添付ファイルを確認する', 'checkOutreachAttachments')
+    .addSeparator()
+    .addItem('④ 下書きを作成する（送信しない）', 'createOutreachDrafts')
+    .addSeparator()
+    .addItem('⑤ 直接送信する（DRY_RUN設定に従う）', 'sendOutreachBatch')
+    .addItem('⑥ 状況を集計する', 'outreachStatus')
+    .addToUi();
 }
