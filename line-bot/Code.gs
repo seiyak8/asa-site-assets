@@ -234,6 +234,32 @@ const TRIAL_FORM = {
   entryId: 'entry.370446376'
 };
 
+/**
+ * 初回案内に添えるクラススケジュールの画像。
+ *
+ * 「一番早い体験はいつですか」は最初の問い合わせでよく聞かれる。曜日・時間・
+ * 場所を先に見せておけば、人が答えるまでの待ち時間が申込率を削らずに済む。
+ *
+ * ★ LINEの画像メッセージの条件
+ *   ・公開されたHTTPSのURL（認証を要求するURLは不可）
+ *   ・JPEGかPNG。originalContentUrl は10MBまで、previewImageUrl は1MBまで
+ *   ・Googleドライブの共有リンクは画像そのものではなくHTMLを返すので使えない
+ *
+ * ここでは1言語につき1ファイルを使い、1MB以下にしておくことで
+ * original と preview を兼ねさせている。ファイルを差し替えたら
+ * testScheduleImages() を実行して、3言語とも200が返ることを確かめること。
+ *
+ * URLを空にすると、その言語では画像を送らずテキストだけ返す。
+ */
+const SCHEDULE_IMAGE_BASE =
+  'https://raw.githubusercontent.com/seiyak8/asa-site-assets/main/assets/images/';
+
+const SCENE1_SCHEDULE_IMAGE = {
+  ja: SCHEDULE_IMAGE_BASE + 'schedule-ja.jpg',
+  en: SCHEDULE_IMAGE_BASE + 'schedule-en.jpg',
+  th: SCHEDULE_IMAGE_BASE + 'schedule-th.jpg'
+};
+
 const SCENE1_TRIAL_INQUIRY = {
   ja: {
     keywords: [
@@ -682,11 +708,22 @@ function handleEvent_(event) {
   );
 
   if (REPLY_MODE === 'immediate') {
-    const ok = replyMessage_(replyToken, replyText);
+    const ok = replyMessages_(replyToken, scene1Messages_(lang, replyText));
     logRow_(userId, keyword, replyText, ok, '');
   } else {
     logRow_(userId, keyword, replyText, false, '');
   }
+}
+
+/**
+ * シーン1で送るメッセージ一式。案内文のあとにスケジュール画像を1枚。
+ * その言語の画像URLが未設定なら案内文だけを返す。
+ */
+function scene1Messages_(lang, replyText) {
+  const messages = [textMessage_(replyText)];
+  const url = SCENE1_SCHEDULE_IMAGE[lang];
+  if (url) messages.push(imageMessage_(url));
+  return messages;
 }
 
 function jsonOutput_(obj) {
@@ -771,15 +808,45 @@ function processQueue() {
  * 受信したメッセージへの応答は必ずこちらを使う。
  */
 function replyMessage_(replyToken, text) {
+  return replyMessages_(replyToken, [textMessage_(text)]);
+}
+
+function textMessage_(text) {
+  return { type: 'text', text: text };
+}
+
+/** 画像1枚。1MB以下のファイルを想定し、original と preview に同じURLを使う。 */
+function imageMessage_(url) {
+  return { type: 'image', originalContentUrl: url, previewImageUrl: url };
+}
+
+/**
+ * 複数のメッセージをまとめて返信する（LINEの上限は1回5通）。
+ *
+ * 画像を含む送信が失敗したら、テキストだけで送り直す。
+ * 画像のURLが切れているときに配列ごと拒否されると、お客様には
+ * 「1通も届かない」ことになる。案内文だけでも必ず届くようにするための保険。
+ */
+function replyMessages_(replyToken, messages) {
   if (!replyToken) return false;
+
+  const ok = postReply_(replyToken, messages);
+  if (ok) return true;
+
+  const textOnly = messages.filter(function (m) { return m.type === 'text'; });
+  if (textOnly.length === messages.length) return false;
+
+  Logger.log('画像付きの返信に失敗したため、テキストだけで送り直します。' +
+             '画像URLを testScheduleImages() で確認してください。');
+  return postReply_(replyToken, textOnly);
+}
+
+function postReply_(replyToken, messages) {
   const options = {
     method: 'post',
     contentType: 'application/json',
     headers: { Authorization: 'Bearer ' + getChannelAccessToken_() },
-    payload: JSON.stringify({
-      replyToken: replyToken,
-      messages: [{ type: 'text', text: text }]
-    }),
+    payload: JSON.stringify({ replyToken: replyToken, messages: messages }),
     muteHttpExceptions: true
   };
   const res = UrlFetchApp.fetch('https://api.line.me/v2/bot/message/reply', options);
@@ -1054,6 +1121,40 @@ function checkProperties() {
   Logger.log(PROP_TOKEN + ': ' +
     (token ? token.slice(0, 4) + '...' + token.slice(-4) + '（' + token.length + '文字）' : '★未設定'));
   Logger.log(PROP_SHEET_ID + ': ' + (sheetId || '★未設定'));
+}
+
+/**
+ * スケジュール画像のURLを確認する。画像を差し替えたら必ず実行すること。
+ *
+ * LINEに送る前にここで弾いておかないと、URLが切れていることに
+ * 気づくのがお客様に届かなかったときになる。
+ */
+function testScheduleImages() {
+  ['ja', 'en', 'th'].forEach(function (lang) {
+    const url = SCENE1_SCHEDULE_IMAGE[lang];
+    if (!url) {
+      Logger.log(lang + ': 未設定（この言語では画像を送りません）');
+      return;
+    }
+    try {
+      const res = UrlFetchApp.fetch(url, { muteHttpExceptions: true });
+      const code = res.getResponseCode();
+      const type = res.getHeaders()['Content-Type'] || res.getHeaders()['content-type'] || '不明';
+      const kb = Math.round(res.getBlob().getBytes().length / 1024);
+      const okType = type.indexOf('image/jpeg') !== -1 || type.indexOf('image/png') !== -1;
+
+      if (code === 200 && okType && kb <= 1024) {
+        Logger.log(lang + ': OK（' + type + ' / ' + kb + 'KB）');
+      } else {
+        Logger.log(lang + ': ★要確認 HTTP ' + code + ' / ' + type + ' / ' + kb + 'KB');
+        if (!okType) Logger.log('   → JPEGかPNGである必要があります。');
+        if (kb > 1024) Logger.log('   → プレビュー用の上限1MBを超えています。縮小してください。');
+      }
+    } catch (err) {
+      Logger.log(lang + ': ★取得できません（' + err.message + '）');
+    }
+  });
+  Logger.log('3言語とも OK なら、次の問い合わせから画像が添付されます。');
 }
 
 function testSheetAccess() {
