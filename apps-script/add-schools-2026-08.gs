@@ -99,3 +99,74 @@ function addBangkokSchools2026() {
              (duplicated ? '（重複 ' + duplicated + '件はスキップ）' : ''));
   Logger.log('メールアドレスは空欄です。B列に入力するまで、下書き作成も送信も行われません。');
 }
+
+/* ============================================================
+ * 追加済みの行にアドレスを後から書き込む
+ * ============================================================
+ * addBangkokSchools2026 をアドレス空欄の状態で先に実行してしまった場合、
+ * 学校名の重複チェックに引っかかって上書きされない。その修正用。
+ *
+ * 既にB列に何か入っている行は触らない。手で直した内容を消さないため。
+ */
+
+/** [学校名, メールアドレス, 備考] */
+const EMAIL_FIXES_2026_08 = [
+  ['Wellington College International School Bangkok', 'admissions@wellingtoncollege.ac.th', '公式サイトの Contact より'],
+  ['King\'s College International School Bangkok', 'admissions@kingsbangkok.ac.th', '公式サイトの Contact より'],
+  ['Ascot International School', 'admissions@ascot.ac.th', '公式サイトの Contact より']
+];
+
+/** 閉校などで送ってはいけない学校。[学校名, 理由] */
+const CLOSED_SCHOOLS_2026_08 = [
+  ['VERSO International School', '2026年7月31日で閉校']
+];
+
+function fixOutreachEmails2026() {
+  const sheet = getOutreachSheet_();
+  const data = sheet.getDataRange().getValues();
+
+  // 学校名から行番号を引けるようにする。
+  const rowOf = {};
+  for (let i = 1; i < data.length; i++) {
+    const name = (data[i][0] || '').toString().trim().toLowerCase();
+    if (name && !rowOf[name]) rowOf[name] = i + 1;
+  }
+
+  let filled = 0;
+  let closed = 0;
+
+  EMAIL_FIXES_2026_08.forEach(function (fix) {
+    const rowNumber = rowOf[fix[0].trim().toLowerCase()];
+    if (!rowNumber) {
+      Logger.log('★ 見つかりません: ' + fix[0]);
+      return;
+    }
+
+    const current = (data[rowNumber - 1][1] || '').toString().trim();
+    if (current) {
+      Logger.log('スキップ（既にアドレスあり）: ' + fix[0] + ' → ' + current);
+      return;
+    }
+
+    sheet.getRange(rowNumber, 2).setValue(fix[1]);
+    sheet.getRange(rowNumber, 7).setValue(fix[2]);
+    Logger.log(rowNumber + '行目 記入: ' + fix[0] + ' → ' + fix[1]);
+    filled++;
+  });
+
+  CLOSED_SCHOOLS_2026_08.forEach(function (item) {
+    const rowNumber = rowOf[item[0].trim().toLowerCase()];
+    if (!rowNumber) return;
+
+    sheet.getRange(rowNumber, 5).setValue('skipped');
+    sheet.getRange(rowNumber, 7).setValue(item[1]);
+    Logger.log(rowNumber + '行目 除外: ' + item[0] + '（' + item[1] + '）');
+    closed++;
+  });
+
+  Logger.log('--- 完了 ---');
+  Logger.log('アドレスを ' + filled + '件記入 / 除外指定 ' + closed + '件');
+  if (filled) {
+    Logger.log('この' + filled + '校は「④ 下書きを作成する」の対象になります。');
+  }
+}
