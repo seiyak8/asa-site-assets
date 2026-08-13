@@ -17,6 +17,11 @@
  *   Queue         A:timestamp B:userId C:keyword D:replyText E:sent F:担当者
  *   KnownContacts A:userId    B:memo
  *   UserLang      A:userId    B:lang   C:updatedAt
+ *   NoAutoReply   A:userId    B:reason C:addedAt   … 自動送信しない相手
+ *   Followers     A:userId    B:followedAt         … 友だち追加を記録できた相手
+ *
+ *   ★ 自動送信は「Followers に載っていて、NoAutoReply に載っていない人」だけ。
+ *     貼り替えたら markAllCurrentFollowersAsExisting() を一度実行すること。
  *
  *   ★ Queue の F列「担当者」
  *     スタッフが手動対応する案件は担当者名を記入する。記入がある行は
@@ -92,6 +97,84 @@ function isKnownContact_(userId) {
     if (data[i][0] === userId) return true;
   }
   return false;
+}
+
+/* ============================================================
+ * 自動送信の禁止リスト
+ * ============================================================
+ * 一度でも人が応対したお客様に「初めまして」を送ると、それまでの
+ * やり取りがなかったことになる。体験に来て、双子のお子さんのことで
+ * 何度も質問をくださった方に初回案内が出てしまい、代表が
+ * 「誤送信失礼いたしました」と謝る事故が実際に起きた。
+ *
+ * ★ このリストに載っているユーザーには、どのトリガーでも自動送信しない。
+ *
+ * ボットはLINE公式アカウントマネージャー上での手動のやり取りを
+ * 見ることができない（webhookに流れてこない）。そのため
+ * 「人が対応したか」を後から判定する手段がない。
+ * そこで発想を逆にして、次の条件を満たす人**だけ**を自動送信の対象にする。
+ *
+ *   このアカウントを友だち追加した瞬間をボットが記録できている人
+ *
+ * 追加の瞬間を見ていない相手は、いつからいるのか、誰が何を話したのかが
+ * 分からない。分からない相手には送らない。
+ */
+const SHEET_NO_AUTO_REPLY = 'NoAutoReply';
+const SHEET_FOLLOWERS = 'Followers';
+
+function getNoAutoReplySheet_() {
+  return getOrCreateSheet_(SHEET_NO_AUTO_REPLY, ['userId', 'reason', 'addedAt']);
+}
+
+/** 友だち追加をボットが記録できた人。ここに載っている人だけが自動送信の対象。 */
+function getFollowersSheet_() {
+  return getOrCreateSheet_(SHEET_FOLLOWERS, ['userId', 'followedAt']);
+}
+
+function isAutoReplyBlocked_(userId) {
+  const data = getNoAutoReplySheet_().getDataRange().getValues();
+  for (let i = 1; i < data.length; i++) {
+    if (data[i][0] === userId) return true;
+  }
+  return isKnownContact_(userId);
+}
+
+function isTrackedFollower_(userId) {
+  const data = getFollowersSheet_().getDataRange().getValues();
+  for (let i = 1; i < data.length; i++) {
+    if (data[i][0] === userId) return true;
+  }
+  return false;
+}
+
+/** 禁止リストに加える。すでに載っていれば何もしない。 */
+function blockAutoReply_(userId, reason) {
+  if (isAutoReplyBlocked_(userId)) return;
+  getNoAutoReplySheet_().appendRow([userId, reason || '', new Date()]);
+  Logger.log('自動送信の禁止リストに追加: ' + userId + '（' + reason + '）');
+}
+
+function recordFollower_(userId) {
+  if (isTrackedFollower_(userId)) return;
+  getFollowersSheet_().appendRow([userId, new Date()]);
+}
+
+/**
+ * このお客様に自動送信してよいか。
+ *
+ * 迷ったら送らない。送らなければ人が答えるだけだが、
+ * 誤って送れば取り消せない。
+ */
+function mayAutoSend_(userId) {
+  if (isAutoReplyBlocked_(userId)) return false;
+
+  if (!isTrackedFollower_(userId)) {
+    // 友だち追加を見ていない＝この変更より前からいるお客様。
+    // 代表が手動で応対している可能性があるので、以後も送らない。
+    blockAutoReply_(userId, '友だち追加の記録がないため（既存のお客様とみなす）');
+    return false;
+  }
+  return true;
 }
 
 /* ============================================================
@@ -656,6 +739,13 @@ function doPost(e) {
 }
 
 function handleEvent_(event) {
+  // 友だち追加。ここを記録できた相手だけが自動送信の対象になる。
+  if (event.type === 'follow') {
+    recordFollower_(event.source.userId);
+    Logger.log('友だち追加を記録: ' + event.source.userId);
+    return;
+  }
+
   if (event.type !== 'message' || event.message.type !== 'text') return;
 
   const userId = event.source.userId;
@@ -664,6 +754,14 @@ function handleEvent_(event) {
 
   const lang = detectLanguage_(text, userId);
   saveLang_(userId, lang);
+
+  // 0. 人が応対したことのあるお客様には、何があっても自動送信しない。
+  //    キーワードの判定より前に置く。ここを通り抜ける経路を作らないため。
+  if (!mayAutoSend_(userId)) {
+    logRow_(userId, 'skipped_known_customer', text, true, '要対応');
+    Logger.log('既存のお客様のため自動送信せず記録のみ: ' + userId);
+    return;
+  }
 
   // 1. 人が対応すべき内容なら、自動で答えずスタッフに回す
   if (needsHuman_(text)) {
@@ -691,10 +789,8 @@ function handleEvent_(event) {
   });
   if (!matched) return;
 
-  if (isKnownContact_(userId)) {
-    Logger.log('既存顧客のためシーン1をスキップ: ' + userId);
-    return;
-  }
+  // 既存のお客様かどうかは、この関数の先頭 mayAutoSend_() で判定済み。
+  // 判定箇所を1つにしておかないと、片方だけ通り抜ける経路ができる。
 
   const keyword = 'scene1_trial_inquiry_' + lang;
   if (alreadyHandled_(userId, keyword)) {
@@ -884,11 +980,39 @@ function pushMessage_(userId, text, token) {
  * フォーム送信時の処理
  * ============================================================ */
 
+/**
+ * フォーム送信をきっかけにした自動送信も止めるか。
+ *
+ * true  … 「どんなトリガーでも自動送信しない」を厳密に守る（既定）
+ * false … お客様自身がフォームを出したときだけは送る
+ *
+ * ★ true のままだと、既存のお客様が入会フォームを出しても
+ *   Bandへの招待（シーン4）が自動で飛ばない。スタッフが手動で
+ *   案内する運用になる。取りこぼすと入会後の連絡が届かないので、
+ *   運用が回らないようなら false にすること。
+ */
+const BLOCK_ON_FORM_SUBMIT = true;
+
+/** フォーム送信きっかけの自動送信をしてよいか。 */
+function mayAutoSendOnFormSubmit_(userId) {
+  if (!BLOCK_ON_FORM_SUBMIT) return true;
+  if (isAutoReplyBlocked_(userId)) {
+    Logger.log('既存のお客様のためフォーム後の自動送信を見送りました: ' + userId +
+               '（手動で案内してください）');
+    return false;
+  }
+  return true;
+}
+
 function onTrialFormSubmit(e) {
   const userId = extractUserId_(e);
   if (!userId) {
     Logger.log('userId取得失敗（シーン2）。フォームの「LINE ID」質問と、' +
                'LINEが送るリンクの事前入力設定を確認してください。');
+    return;
+  }
+  if (!mayAutoSendOnFormSubmit_(userId)) {
+    logRow_(userId, 'skipped_known_customer_trial_form', '', true, '要対応');
     return;
   }
   const lang = extractFormLanguage_(e);
@@ -910,6 +1034,10 @@ function handleEnrollFormSubmit_(e, lang) {
   const userId = extractUserId_(e);
   if (!userId) {
     Logger.log('userId取得失敗（シーン4・' + lang + '）。フォームの「LINE ID」質問を確認してください。');
+    return;
+  }
+  if (!mayAutoSendOnFormSubmit_(userId)) {
+    logRow_(userId, 'skipped_known_customer_enroll_form', '', true, '要対応');
     return;
   }
   const keyword = 'scene4_welcome_' + lang;
@@ -1030,12 +1158,17 @@ function sendScene3Manual() {
   ui.alert(ok ? '送信しました。' : '送信に失敗しました。ログを確認してください。');
 }
 
-function addKnownContact() {
+// 旧 addKnownContact() は stopAutoReplyForContact() に置き換えた。
+// 登録先を2つにしておくと、片方にだけ入れて安心してしまう。
+// 既存の KnownContacts シートの中身は isAutoReplyBlocked_() が今も見ている。
+
+/** このお客様への自動送信を止める。人が応対した相手に使う。 */
+function stopAutoReplyForContact() {
   const ui = SpreadsheetApp.getUi();
 
-  const userIdResp = ui.prompt('既存顧客として登録するLINEユーザーIDを入力してください');
-  if (userIdResp.getSelectedButton() !== ui.Button.OK) return;
-  const userId = normalizeUserId_(userIdResp.getResponseText());
+  const resp = ui.prompt('自動送信を止めるLINEユーザーIDを入力してください');
+  if (resp.getSelectedButton() !== ui.Button.OK) return;
+  const userId = normalizeUserId_(resp.getResponseText());
   if (!userId) return;
   if (!isValidUserId_(userId)) {
     ui.alert(
@@ -1046,18 +1179,21 @@ function addKnownContact() {
     return;
   }
 
-  const memoResp = ui.prompt('メモ（任意・名前など。空欄でもOK）');
+  const memoResp = ui.prompt('理由やお名前（任意）');
   const memo = memoResp.getSelectedButton() === ui.Button.OK ? memoResp.getResponseText().trim() : '';
 
-  getKnownContactsSheet_().appendRow([userId, memo]);
-  ui.alert('登録しました: ' + userId);
+  blockAutoReply_(userId, memo || '手動で登録');
+  ui.alert('登録しました。このお客様には今後どのトリガーでも自動送信されません。\n' + userId);
 }
 
 function onOpen() {
   SpreadsheetApp.getUi()
     .createMenu('ASAツール')
     .addItem('シーン3を送信（体験レッスン後のお礼）', 'sendScene3Manual')
-    .addItem('既存顧客として登録（シーン1の自動案内を止める）', 'addKnownContact')
+    .addSeparator()
+    .addItem('このお客様への自動送信を止める', 'stopAutoReplyForContact')
+    .addItem('既存の友だち全員の自動送信を止める（初回のみ）', 'markAllCurrentFollowersAsExisting')
+    .addItem('自動送信の状況を確認', 'countBlockedContacts')
     .addSeparator()
     .addItem('設定を確認', 'checkProperties')
     .addToUi();
@@ -1155,6 +1291,79 @@ function testScheduleImages() {
     }
   });
   Logger.log('3言語とも OK なら、次の問い合わせから画像が添付されます。');
+}
+
+/**
+ * 現在の友だち全員を「既存のお客様」として自動送信の禁止リストに入れる。
+ *
+ * ★ 貼り替えた直後に一度だけ実行すること。
+ *
+ * これを実行するまで、既存のお客様は「初めてメッセージをくれた人」と
+ * 区別できない。実行しておけば、いま友だちである全員が保護される。
+ * 以後に友だち追加した人だけが自動送信の対象になる。
+ *
+ * 友だち一覧の取得APIが使えないアカウントの場合は失敗する。その場合でも
+ * mayAutoSend_() が「友だち追加の記録がない人には送らない」と判断するので、
+ * 既存のお客様に初回案内が飛ぶことはない。
+ */
+function markAllCurrentFollowersAsExisting() {
+  const token = getChannelAccessToken_();
+  const sheet = getNoAutoReplySheet_();
+
+  const existing = {};
+  sheet.getDataRange().getValues().slice(1).forEach(function (row) {
+    existing[row[0]] = true;
+  });
+
+  let url = 'https://api.line.me/v2/bot/followers/ids?limit=1000';
+  let added = 0;
+  let seen = 0;
+  const now = new Date();
+  const rows = [];
+
+  for (let page = 0; page < 50; page++) {
+    const res = UrlFetchApp.fetch(url, {
+      headers: { Authorization: 'Bearer ' + token },
+      muteHttpExceptions: true
+    });
+    const code = res.getResponseCode();
+    if (code !== 200) {
+      Logger.log('★友だち一覧を取得できません (HTTP ' + code + '): ' + res.getContentText());
+      Logger.log('このアカウントでは一覧APIが使えない可能性があります。');
+      Logger.log('その場合でも、友だち追加を記録していない相手には自動送信しない' +
+                 '仕組みが働くので、既存のお客様に初回案内が飛ぶことはありません。');
+      break;
+    }
+
+    const body = JSON.parse(res.getContentText());
+    const ids = body.userIds || [];
+    ids.forEach(function (id) {
+      seen++;
+      if (!existing[id]) {
+        existing[id] = true;
+        rows.push([id, '一括登録：この設定より前からの友だち', now]);
+        added++;
+      }
+    });
+
+    if (!body.next) break;
+    url = 'https://api.line.me/v2/bot/followers/ids?limit=1000&start=' + body.next;
+  }
+
+  if (rows.length) {
+    sheet.getRange(sheet.getLastRow() + 1, 1, rows.length, 3).setValues(rows);
+  }
+
+  Logger.log('友だち ' + seen + '件を確認し、' + added + '件を禁止リストに追加しました。');
+  Logger.log('この' + added + '名には、今後どのトリガーでも自動送信されません。');
+}
+
+/** いま自動送信が止まっている人数を数える。 */
+function countBlockedContacts() {
+  const n = Math.max(0, getNoAutoReplySheet_().getLastRow() - 1);
+  const f = Math.max(0, getFollowersSheet_().getLastRow() - 1);
+  Logger.log('自動送信を止めているお客様: ' + n + '名');
+  Logger.log('友だち追加を記録できているお客様: ' + f + '名（この方々だけが自動送信の対象）');
 }
 
 function testSheetAccess() {
