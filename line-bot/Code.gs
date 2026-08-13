@@ -1103,13 +1103,19 @@ function isValidUserId_(userId) {
   return /^U[0-9a-f]{32}$/i.test(userId);
 }
 
-function sendScene3Manual() {
-  const ui = SpreadsheetApp.getUi();
+/* ============================================================
+ * 手動送信
+ * ============================================================
+ * 自動送信を止めているお客様には、ここから人が選んで送る。
+ * 送る相手も文面も人が決めているので、禁止リストは見ない。
+ */
 
-  const userIdResp = ui.prompt('LINEユーザーIDを入力してください');
-  if (userIdResp.getSelectedButton() !== ui.Button.OK) return;
-  const userId = normalizeUserId_(userIdResp.getResponseText());
-  if (!userId) return;
+/** ユーザーIDを尋ねて整える。取り消しや形式違いなら null。 */
+function promptUserId_(ui) {
+  const resp = ui.prompt('LINEユーザーIDを入力してください');
+  if (resp.getSelectedButton() !== ui.Button.OK) return null;
+  const userId = normalizeUserId_(resp.getResponseText());
+  if (!userId) return null;
   if (!isValidUserId_(userId)) {
     ui.alert(
       'LINEユーザーIDの形式が正しくありません。\n\n' +
@@ -1117,16 +1123,83 @@ function sendScene3Manual() {
       '正しくは U で始まる33文字（Uのあと16進数32桁）です。\n' +
       'Queueシートの userId 列からセルごとコピーしてください。'
     );
-    return;
+    return null;
+  }
+  return userId;
+}
+
+/** 言語を尋ねる。table に無い言語なら null。 */
+function promptLang_(ui, table) {
+  const resp = ui.prompt('言語を入力してください（ja / en / th）');
+  if (resp.getSelectedButton() !== ui.Button.OK) return null;
+  const lang = resp.getResponseText().trim();
+  if (!table[lang]) {
+    ui.alert('言語は ja / en / th のいずれかで入力してください。');
+    return null;
+  }
+  return lang;
+}
+
+/**
+ * 送って記録する。
+ *
+ * 同じ案内を送った記録があれば、送る前に確認する。二重送信は
+ * 「話を聞いていない」という印象になるため、黙って通さない。
+ * 送ったあとは、そのお客様を自動送信の禁止リストに入れる。
+ * 人が応対を始めた相手なので、以後ボットが割り込まないようにする。
+ */
+function sendManualAndLog_(ui, userId, keyword, text, label) {
+  if (alreadyHandled_(userId, keyword)) {
+    const again = ui.alert(
+      'この案内は送信済みの記録があります',
+      label + ' は既にこのお客様へ送られています。\nもう一度送りますか？',
+      ui.ButtonSet.YES_NO
+    );
+    if (again !== ui.Button.YES) return;
   }
 
-  const langResp = ui.prompt('言語を入力してください（ja / en / th）');
-  if (langResp.getSelectedButton() !== ui.Button.OK) return;
-  const lang = langResp.getResponseText().trim();
-  if (!SCENE3_AFTER_TRIAL_LESSON[lang]) {
-    ui.alert('言語は ja / en / th のいずれかで入力してください。');
-    return;
+  const ok = pushMessage_(userId, text);
+  if (ok) {
+    logRow_(userId, keyword, text, true, '');
+    blockAutoReply_(userId, '手動で' + label + 'を送信');
   }
+  ui.alert(ok
+    ? label + 'を送信しました。\nこのお客様には今後ボットから自動送信されません。'
+    : '送信に失敗しました。ログを確認してください。');
+}
+
+/** シーン2：体験フォーム送信後の持ち物案内。 */
+function sendScene2Manual() {
+  const ui = SpreadsheetApp.getUi();
+  const userId = promptUserId_(ui);
+  if (!userId) return;
+  const lang = promptLang_(ui, SCENE2_AFTER_TRIAL_FORM);
+  if (!lang) return;
+
+  sendManualAndLog_(ui, userId, 'scene2_after_trial_form_' + lang,
+    SCENE2_AFTER_TRIAL_FORM[lang], '持ち物案内');
+}
+
+/** シーン4：入会後のBand招待。 */
+function sendScene4Manual() {
+  const ui = SpreadsheetApp.getUi();
+  const userId = promptUserId_(ui);
+  if (!userId) return;
+  const lang = promptLang_(ui, SCENE4_WELCOME);
+  if (!lang) return;
+
+  sendManualAndLog_(ui, userId, 'scene4_welcome_' + lang,
+    SCENE4_WELCOME[lang], 'Band招待');
+}
+
+function sendScene3Manual() {
+  const ui = SpreadsheetApp.getUi();
+
+  const userId = promptUserId_(ui);
+  if (!userId) return;
+
+  const lang = promptLang_(ui, SCENE3_AFTER_TRIAL_LESSON);
+  if (!lang) return;
 
   // タイ語は語尾が話し手の性別で変わるため、送信するスタッフの性別を尋ねる。
   let gender = '';
@@ -1153,9 +1226,7 @@ function sendScene3Manual() {
     .replace('{{MONTHLY_LINK}}', buildPrefilledFormLink_(forms.monthly.url, forms.monthly.entryId, userId));
 
   const keyword = 'scene3_after_trial_lesson_' + lang + (gender ? '_' + gender : '');
-  const ok = pushMessage_(userId, text);
-  if (ok) logRow_(userId, keyword, text, true, '');
-  ui.alert(ok ? '送信しました。' : '送信に失敗しました。ログを確認してください。');
+  sendManualAndLog_(ui, userId, keyword, text, '体験後のお礼');
 }
 
 // 旧 addKnownContact() は stopAutoReplyForContact() に置き換えた。
@@ -1189,7 +1260,9 @@ function stopAutoReplyForContact() {
 function onOpen() {
   SpreadsheetApp.getUi()
     .createMenu('ASAツール')
-    .addItem('シーン3を送信（体験レッスン後のお礼）', 'sendScene3Manual')
+    .addItem('① 持ち物案内を送信（体験フォーム記入後）', 'sendScene2Manual')
+    .addItem('② 体験後のお礼を送信（入会案内つき）', 'sendScene3Manual')
+    .addItem('③ Band招待を送信（入会フォーム記入後）', 'sendScene4Manual')
     .addSeparator()
     .addItem('このお客様への自動送信を止める', 'stopAutoReplyForContact')
     .addItem('既存の友だち全員の自動送信を止める（初回のみ）', 'markAllCurrentFollowersAsExisting')
