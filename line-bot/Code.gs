@@ -1265,7 +1265,7 @@ function onOpen() {
     .addItem('③ Band招待を送信（入会フォーム記入後）', 'sendScene4Manual')
     .addSeparator()
     .addItem('このお客様への自動送信を止める', 'stopAutoReplyForContact')
-    .addItem('既存の友だち全員の自動送信を止める（初回のみ）', 'markAllCurrentFollowersAsExisting')
+    .addItem('過去にやり取りのある方の自動送信を止める（初回のみ）', 'markPastContactsAsExisting')
     .addItem('自動送信の状況を確認', 'countBlockedContacts')
     .addSeparator()
     .addItem('設定を確認', 'checkProperties')
@@ -1429,6 +1429,56 @@ function markAllCurrentFollowersAsExisting() {
 
   Logger.log('友だち ' + seen + '件を確認し、' + added + '件を禁止リストに追加しました。');
   Logger.log('この' + added + '名には、今後どのトリガーでも自動送信されません。');
+}
+
+/**
+ * これまでに一度でもやり取りのあったお客様を、まとめて禁止リストに入れる。
+ *
+ * ★ markAllCurrentFollowersAsExisting() が 403 で使えないアカウント向け。
+ *   貼り替えた直後に一度だけ実行すること。
+ *
+ * 友だち一覧APIは認証済みアカウントでないと使えない（403）。代わりに
+ * 手元のシートを使う。Queue と UserLang に載っているユーザーIDは、
+ * 過去にこのアカウントへ連絡をくれた実在のお客様なので、
+ * 「初めての人」ではないと言い切れる。
+ *
+ * これで守れないのは「友だち追加だけして一度も連絡をくれていない人」。
+ * その方が今後メッセージをくれたときは mayAutoSend_() が
+ * 友だち追加の記録がないことに気づいて止めるので、そちらで拾える。
+ */
+function markPastContactsAsExisting() {
+  const sheet = getNoAutoReplySheet_();
+
+  const existing = {};
+  sheet.getDataRange().getValues().slice(1).forEach(function (row) {
+    existing[row[0]] = true;
+  });
+
+  const found = {};
+  getQueueSheet_().getDataRange().getValues().slice(1).forEach(function (row) {
+    const id = (row[1] || '').toString().trim();
+    if (id) found[id] = true;
+  });
+  getUserLangSheet_().getDataRange().getValues().slice(1).forEach(function (row) {
+    const id = (row[0] || '').toString().trim();
+    if (id) found[id] = true;
+  });
+
+  const now = new Date();
+  const rows = [];
+  Object.keys(found).forEach(function (id) {
+    if (!existing[id]) {
+      rows.push([id, '一括登録：過去にやり取りのあったお客様', now]);
+    }
+  });
+
+  if (rows.length) {
+    sheet.getRange(sheet.getLastRow() + 1, 1, rows.length, 3).setValues(rows);
+  }
+
+  Logger.log('過去のやり取り ' + Object.keys(found).length + '名を確認し、' +
+             rows.length + '名を禁止リストに追加しました。');
+  Logger.log('この方々には、今後どのトリガーでも自動送信されません。');
 }
 
 /** いま自動送信が止まっている人数を数える。 */
