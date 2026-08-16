@@ -551,34 +551,62 @@ const HUMAN_HANDOFF_REPLY = {
  * シーン2：体験フォーム送信後（持ち物案内）
  * ============================================================ */
 
+/**
+ * 出典は「Academy LINE Response Manual」の2番目。
+ *
+ * Future Steps International School の会場案内が入っている。当日「体育館が
+ * 見つからない」で始まる体験は取り返しがつかないので、落とさないこと。
+ *
+ * タイ語は他のシーンと同じく話し手の性別で語尾が変わる。手動送信のときは
+ * 送るスタッフの性別を尋ね、自動送信のときは女性形を使う。
+ */
 const SCENE2_AFTER_TRIAL_FORM = {
   ja:
-    'フォームの入力ありがとうございます。\n\n' +
+    'フォームの入力ありがとうございます。\n' +
     '当日は走るメニューが多いため、最後までやりきれない場合がございますが\n' +
     'その際はスタッフの方でサポートしますのでご安心ください。\n\n' +
     '当日の持ち物こちらになります。\n\n' +
     '・運動着＆着替え\n・タオル\n・水分（多めに）\n' +
     '・シューズ（普段はいている物で可）*スパイク禁止\n' +
     '・体操クラスのお子様は裸足または靴下\n\n' +
+    'Future Steps International Schoolへの体験希望の方へ\n' +
+    '会場が階段を上がっていただき2階(実質3階)の体育館になります。\n\n' +
     'よろしくお願いいたします。\nAdvance Sports Academy',
   en:
-    'Thank you for filling out the form.\n\n' +
-    "The trial lesson includes a lot of running activities, so if your child isn't able to " +
-    "complete everything, please don't worry — our staff will be there to support them.\n\n" +
+    'Thank you for filling out the form!\n\n' +
+    "The trial lesson includes a lot of running, so please don't worry if your child " +
+    "isn't able to finish everything — our staff will be there to help.\n\n" +
     "Here's what to bring on the day:\n\n" +
-    '・Sportswear & a change of clothes\n・A towel\n・Water (plenty of it)\n' +
+    '・Sportswear & a change of clothes\n・Towel\n・Water (plenty of it)\n' +
     '・Shoes (regular sneakers are fine) *Spikes are not allowed\n' +
-    '・Children in the gymnastics class: bare feet or socks\n\n' +
-    'Thank you,\nAdvance Sports Academy',
-  th:
-    'ขอบคุณสำหรับการกรอกแบบฟอร์มค่ะ\n\n' +
-    'ในวันทดลองเรียนจะมีกิจกรรมที่ต้องวิ่งเยอะ หากบุตรหลานทำไม่ไหวจนจบ ' +
-    'ทางสตาฟฟ์จะคอยช่วยเหลือ ไม่ต้องกังวลนะคะ\n\n' +
-    'สิ่งที่ต้องเตรียมมาในวันนั้น มีดังนี้ค่ะ\n\n' +
-    '・ชุดกีฬาและชุดเปลี่ยน\n・ผ้าขนหนู\n・น้ำดื่ม (เตรียมมาเยอะๆ)\n' +
-    '・รองเท้า (รองเท้าที่ใส่ประจำก็ได้) *ห้ามใส่รองเท้าสตั๊ด\n' +
-    '・เด็กที่เรียนคลาสยิมนาสติก: เท้าเปล่าหรือใส่ถุงเท้า\n\n' +
-    'ขอบคุณค่ะ\nAdvance Sports Academy'
+    '・Children in the gymnastics class should be barefoot or wear socks\n\n' +
+    'For those trying a lesson at Future Steps International School\n' +
+    'The venue is the gym on the 2nd floor (effectively the 3rd floor), up the stairs.\n\n' +
+    'Best regards,\nAdvance Sports Academy',
+  th: {
+    female:
+      'ขอบคุณที่กรอกแบบฟอร์มค่ะ\n\n' +
+      'ในวันทดลองเรียนจะมีเมนูที่ต้องวิ่งค่อนข้างเยอะ หากบุตรหลานทำไม่ได้จนจบก็ไม่ต้องกังวลนะคะ ' +
+      'เพราะทางเจ้าหน้าที่จะคอยช่วยเหลืออยู่ค่ะ\n\n' +
+      'สิ่งที่ต้องเตรียมมาในวันนั้นมีดังนี้ค่ะ\n\n' +
+      '・ชุดกีฬาและชุดเปลี่ยน\n・ผ้าขนหนู\n・น้ำดื่ม (เตรียมมาให้เพียงพอ)\n' +
+      '・รองเท้า (รองเท้าที่ใส่ประจำก็ได้ค่ะ) *ห้ามใส่รองเท้าสตั๊ด\n' +
+      '・เด็กที่เรียนคลาสยิมนาสติกกรุณาเดินเท้าเปล่าหรือใส่ถุงเท้าค่ะ\n\n' +
+      'สำหรับผู้ที่ต้องการทดลองเรียนที่ Future Steps International School\n' +
+      'สถานที่จะอยู่ชั้น 2 (จริงๆ คือชั้น 3) ต้องเดินขึ้นบันไดไปที่โรงยิมค่ะ\n\n' +
+      'ขอบคุณค่ะ\nAdvance Sports Academy',
+    male:
+      'ขอบคุณที่กรอกแบบฟอร์มครับ\n\n' +
+      'ในวันทดลองเรียนจะมีเมนูที่ต้องวิ่งค่อนข้างเยอะ หากบุตรหลานทำไม่ได้จนจบก็ไม่ต้องกังวลนะครับ ' +
+      'เพราะทางเจ้าหน้าที่จะคอยช่วยเหลืออยู่ครับ\n\n' +
+      'สิ่งที่ต้องเตรียมมาในวันนั้นมีดังนี้ครับ\n\n' +
+      '・ชุดกีฬาและชุดเปลี่ยน\n・ผ้าขนหนู\n・น้ำดื่ม (เตรียมมาให้เพียงพอ)\n' +
+      '・รองเท้า (รองเท้าที่ใส่ประจำก็ได้ครับ) *ห้ามใส่รองเท้าสตั๊ด\n' +
+      '・เด็กที่เรียนคลาสยิมนาสติกกรุณาเดินเท้าเปล่าหรือใส่ถุงเท้าครับ\n\n' +
+      'สำหรับผู้ที่ต้องการทดลองเรียนที่ Future Steps International School\n' +
+      'สถานที่จะอยู่ชั้น 2 (จริงๆ คือชั้น 3) ต้องเดินขึ้นบันไดไปที่โรงยิมครับ\n\n' +
+      'ขอบคุณครับ\nAdvance Sports Academy'
+  }
 };
 
 /* ============================================================
@@ -684,8 +712,8 @@ const SCENE4_WELCOME = {
     '・サブの名前：保護者様のお名前をご記入ください。\n' +
     '・兄弟姉妹がいる場合：クラスに参加するお子様全員の名前と写真を添付してください。\n\n' +
     'お子様のクラス別Bandグループ\n' +
-    '・Band Enjoy Class: https://band.us/n/aaab05z058D9Y\n' +
-    '・[Band Advance Class], [Enjoy Elite Class]: https://band.us/n/a6a7A3n3g0Ddk\n\n' +
+    '・[Enjoy Class], [Rhythm Gymnastics Class]: https://band.us/n/aaab05z058D9Y\n' +
+    '・[Advance Class], [Enjoy Elite Class]: https://band.us/n/a6a7A3n3g0Ddk\n\n' +
     '全てのお子様が参加必須のグループ\n' +
     '・All Member Group: https://band.us/n/a3a0b0w3X42aA\n\n' +
     '今後の連絡は全てBandにて行いますので、ご理解とご協力をお願いいたします。\n' +
@@ -819,8 +847,10 @@ function handleEvent_(event) {
       Logger.log('持ち物案内は送信済みのためスキップ: ' + userId);
       return;
     }
-    replyMessage_(replyToken, SCENE2_AFTER_TRIAL_FORM[lang]);
-    logRow_(userId, 'scene2_after_trial_form_' + lang, SCENE2_AFTER_TRIAL_FORM[lang], true, '');
+    // 自動返信には実在の話し手がいないので、タイ語は女性形を使う。
+    const kit = resolveBody_(SCENE2_AFTER_TRIAL_FORM, lang);
+    replyMessage_(replyToken, kit);
+    logRow_(userId, 'scene2_after_trial_form_' + lang, kit, true, '');
     return;
   }
 
@@ -1063,8 +1093,10 @@ function onTrialFormSubmit(e) {
     Logger.log('持ち物案内は送信済みのためスキップ: ' + userId);
     return;
   }
-  const ok = pushMessage_(userId, SCENE2_AFTER_TRIAL_FORM[lang]);
-  logRow_(userId, keyword, SCENE2_AFTER_TRIAL_FORM[lang], ok, '');
+  // 自動送信には実在の話し手がいないので、タイ語は女性形を使う。
+  const text = resolveBody_(SCENE2_AFTER_TRIAL_FORM, lang);
+  const ok = pushMessage_(userId, text);
+  logRow_(userId, keyword, text, ok, '');
 }
 
 function onEnrollFormSubmitJaTicket(e) { handleEnrollFormSubmit_(e, 'ja'); }
@@ -1185,6 +1217,33 @@ function promptLang_(ui, table) {
 }
 
 /**
+ * 送信するスタッフの性別を尋ねる。
+ *
+ * タイ語の ครับ / ค่ะ は聞き手ではなく**話し手**の性別を表す。
+ * 手で送るときは実在の話し手がいるので、その人に合わせる。
+ * 取り消しや入力違いなら null、性別が要らない言語なら空文字。
+ */
+function promptGender_(ui, table, lang) {
+  if (!needsGender_(table, lang)) return '';
+
+  const resp = ui.prompt(
+    '送信するご自身の性別を入力してください\n' +
+    '女性なら f（語尾は ค่ะ / นะคะ）、男性なら m（語尾は ครับ / นะครับ）'
+  );
+  if (resp.getSelectedButton() !== ui.Button.OK) return null;
+
+  const answer = resp.getResponseText().trim().toLowerCase();
+  if (answer === 'f' || answer === 'female' || answer === '女' || answer === '女性') {
+    return 'female';
+  }
+  if (answer === 'm' || answer === 'male' || answer === '男' || answer === '男性') {
+    return 'male';
+  }
+  ui.alert('性別は f（女性）または m（男性）で入力してください。');
+  return null;
+}
+
+/**
  * 送って記録する。
  *
  * 同じ案内を送った記録があれば、送る前に確認する。二重送信は
@@ -1219,36 +1278,12 @@ function sendScene2Manual() {
   if (!userId) return;
   const lang = promptLang_(ui, SCENE2_AFTER_TRIAL_FORM);
   if (!lang) return;
+  const gender = promptGender_(ui, SCENE2_AFTER_TRIAL_FORM, lang);
+  if (gender === null) return;
 
-  sendManualAndLog_(ui, userId, 'scene2_after_trial_form_' + lang,
-    SCENE2_AFTER_TRIAL_FORM[lang], '持ち物案内');
-}
-
-/**
- * 送信するスタッフの性別を尋ねる。
- *
- * タイ語の ครับ / ค่ะ は聞き手ではなく**話し手**の性別を表す。
- * 手で送るときは実在の話し手がいるので、その人に合わせる。
- * 取り消しや入力違いなら null、性別が要らない言語なら空文字。
- */
-function promptGender_(ui, table, lang) {
-  if (!needsGender_(table, lang)) return '';
-
-  const resp = ui.prompt(
-    '送信するご自身の性別を入力してください\n' +
-    '女性なら f（語尾は ค่ะ / นะคะ）、男性なら m（語尾は ครับ / นะครับ）'
-  );
-  if (resp.getSelectedButton() !== ui.Button.OK) return null;
-
-  const answer = resp.getResponseText().trim().toLowerCase();
-  if (answer === 'f' || answer === 'female' || answer === '女' || answer === '女性') {
-    return 'female';
-  }
-  if (answer === 'm' || answer === 'male' || answer === '男' || answer === '男性') {
-    return 'male';
-  }
-  ui.alert('性別は f（女性）または m（男性）で入力してください。');
-  return null;
+  const keyword = 'scene2_after_trial_form_' + lang + (gender ? '_' + gender : '');
+  sendManualAndLog_(ui, userId, keyword,
+    resolveBody_(SCENE2_AFTER_TRIAL_FORM, lang, gender), '持ち物案内');
 }
 
 /** シーン4：入会後のBand招待。 */
