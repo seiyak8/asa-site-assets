@@ -641,25 +641,38 @@ const SCENE3_AFTER_TRIAL_LESSON = {
 };
 
 /**
- * シーン3の本文を取り出す。
+ * 文面を取り出す。
  * 日本語・英語は文字列、タイ語は性別ごとの2種類。
+ *
+ * 自動送信には実在の話し手がいないので、gender を渡さず女性形に寄せる。
+ * スタッフが手で送るときだけ、その人の性別を尋ねて渡す。
  */
-function resolveScene3Body_(lang, gender) {
-  const body = SCENE3_AFTER_TRIAL_LESSON[lang];
+function resolveBody_(table, lang, gender) {
+  const body = table[lang];
   if (!body) return null;
   if (typeof body === 'string') return body;
   return body[gender] || body.female;
 }
 
 /** その言語が送信者の性別を必要とするか。 */
-function scene3NeedsGender_(lang) {
-  return typeof SCENE3_AFTER_TRIAL_LESSON[lang] === 'object';
+function needsGender_(table, lang) {
+  return typeof table[lang] === 'object';
 }
 
 /* ============================================================
  * シーン4：入会後（Band招待）
  * ============================================================ */
 
+/**
+ * 出典は「Academy LINE Response Manual」の4番目。
+ * 文面を直すときは、まずマニュアル側を直してからここに写すこと。
+ *
+ * Bandグループはクラス別の2つに加えて、全員必須の All Member Group がある。
+ * 3つ目を落とすと、会員全員向けの連絡が届かない人が出る。
+ *
+ * タイ語はシーン3と同じく話し手の性別で語尾が変わる。手動送信のときは
+ * 送るスタッフの性別を尋ね、自動送信のときは女性形を使う。
+ */
 const SCENE4_WELCOME = {
   ja:
     'ようこそASAへ！\n' +
@@ -670,39 +683,68 @@ const SCENE4_WELCOME = {
     '・プロフィールの名前と写真：お子様の情報に変更してください。\n' +
     '・サブの名前：保護者様のお名前をご記入ください。\n' +
     '・兄弟姉妹がいる場合：クラスに参加するお子様全員の名前と写真を添付してください。\n\n' +
-    'ご参加いただくBandグループ\n' +
+    'お子様のクラス別Bandグループ\n' +
     '・Band Enjoy Class: https://band.us/n/aaab05z058D9Y\n' +
-    '・Band Advance Class: https://band.us/n/a6a7A3n3g0Ddk\n\n' +
+    '・[Band Advance Class], [Enjoy Elite Class]: https://band.us/n/a6a7A3n3g0Ddk\n\n' +
+    '全てのお子様が参加必須のグループ\n' +
+    '・All Member Group: https://band.us/n/a3a0b0w3X42aA\n\n' +
     '今後の連絡は全てBandにて行いますので、ご理解とご協力をお願いいたします。\n' +
     'ご不明な点がございましたら、お気軽にお問い合わせください。\n\n' +
     'よろしくお願いいたします。\nAdvance Sports Academy',
   en:
     'Welcome to ASA!\n' +
-    'Thank you for joining us.\n' +
-    'At ASA, we use an exclusive Band group for members to manage schedules, track attendance, ' +
-    'and receive announcements from the academy. Please join via the link below and set up your Band profile.\n\n' +
+    'Thank you very much for joining ASA.\n' +
+    'At ASA, we use an exclusive Band group for members to manage schedules, check attendance, ' +
+    'and receive announcements from the academy.\n' +
+    'Please join using the link below and set up your Band profile.\n\n' +
     'Profile Setup Request\n' +
     "・Profile Name & Photo: Please change to your child's information.\n" +
-    "・Nickname/Sub Name: Please enter the parent's/guardian's name.\n" +
-    '・If you have siblings enrolled: Please include the names and photos of all children attending classes.\n\n' +
-    'Band Groups to Join\n' +
-    '・Band Enjoy Class: https://band.us/n/aaab05z058D9Y\n' +
-    '・Band Advance Class: https://band.us/n/a6a7A3n3g0Ddk\n\n' +
-    'All future communications will be through Band, so we appreciate your understanding and cooperation.\n' +
-    'If you have any questions, please feel free to ask.',
-  th:
-    'ยินดีต้อนรับสู่ ASA ค่ะ! ขอบคุณที่สมัครสมาชิกกับ ASA ค่ะ\n\n' +
-    'ที่ ASA เราใช้กลุ่ม Band สำหรับสมาชิกเท่านั้น เพื่อจัดการตารางเรียน เช็คชื่อ และรับข่าวสารจากทางอคาเดมี่\n' +
-    'รบกวนเข้าร่วมผ่านลิงก์ด้านล่างและตั้งค่าโปรไฟล์ Band ด้วยค่ะ\n\n' +
-    'คำขอในการตั้งค่าโปรไฟล์\n' +
-    '・ชื่อและรูปโปรไฟล์: กรุณาเปลี่ยนเป็นข้อมูลของบุตรหลาน\n' +
-    '・ชื่อรอง: กรุณากรอกชื่อผู้ปกครอง\n' +
-    '・กรณีมีพี่น้อง: กรุณาแนบชื่อและรูปภาพของบุตรหลานทุกคนที่เข้าร่วมคลาส\n\n' +
-    'กลุ่ม Band ที่ต้องเข้าร่วม\n' +
-    '・Band Enjoy Class: https://band.us/n/aaab05z058D9Y\n' +
-    '・Band Advance Class: https://band.us/n/a6a7A3n3g0Ddk\n\n' +
-    'การติดต่อในอนาคตทั้งหมดจะดำเนินการผ่าน Band จึงขอขอบคุณสำหรับความเข้าใจและความร่วมมือค่ะ\n' +
-    'หากมีข้อสงสัยใดๆ สามารถสอบถามได้ตลอดเวลาค่ะ'
+    "・Sub Name: Please enter the parent's/guardian's name.\n" +
+    '・If you have siblings enrolled: Please attach the names and photos of all children attending classes.\n\n' +
+    'Band Groups by Class\n' +
+    '・[Enjoy Class], [Rhythm Gymnastics Class]: https://band.us/n/aaab05z058D9Y\n' +
+    '・[Advance Class], [Enjoy Elite Class]: https://band.us/n/a6a7A3n3g0Ddk\n\n' +
+    'Group All Children Must Join\n' +
+    '・All Member Group: https://band.us/n/a3a0b0w3X42aA\n\n' +
+    'Going forward, all communication will be through Band, so we appreciate your understanding and cooperation.\n' +
+    'If you have any questions, please feel free to contact us.\n\n' +
+    'Best regards,\nAdvance Sports Academy',
+  th: {
+    female:
+      'ยินดีต้อนรับสู่ ASA ค่ะ!\n' +
+      'ขอบคุณเป็นอย่างยิ่งที่สมัครเข้าร่วม ASA ค่ะ\n' +
+      'ที่ ASA เราใช้กลุ่ม Band สำหรับสมาชิกโดยเฉพาะ เพื่อจัดการตารางเรียน ตรวจสอบการเข้าเรียน และแจ้งข่าวสารจากทางอคาเดมีค่ะ\n' +
+      'รบกวนเข้าร่วมผ่านลิงก์ด้านล่างนี้ และตั้งค่าโปรไฟล์ Band ด้วยค่ะ\n\n' +
+      'คำขอในการตั้งค่าโปรไฟล์\n' +
+      '・ชื่อและรูปโปรไฟล์: กรุณาเปลี่ยนเป็นข้อมูลของบุตรหลานค่ะ\n' +
+      '・ชื่อรอง (Sub Name): กรุณากรอกชื่อผู้ปกครองค่ะ\n' +
+      '・กรณีมีพี่น้อง: กรุณาแนบชื่อและรูปภาพของบุตรหลานทุกคนที่เข้าร่วมคลาสค่ะ\n\n' +
+      'กลุ่ม Band แยกตามคลาสของบุตรหลาน\n' +
+      '・[Enjoy Class], [Rhythm Gymnastics Class]: https://band.us/n/aaab05z058D9Y\n' +
+      '・[Advance Class], [Enjoy Elite Class]: https://band.us/n/a6a7A3n3g0Ddk\n\n' +
+      'กลุ่มที่บุตรหลานทุกคนต้องเข้าร่วม\n' +
+      '・All Member Group: https://band.us/n/a3a0b0w3X42aA\n\n' +
+      'การติดต่อในอนาคตทั้งหมดจะดำเนินการผ่าน Band จึงขอความเข้าใจและความร่วมมือด้วยค่ะ\n' +
+      'หากมีข้อสงสัยใดๆ สามารถติดต่อสอบถามได้ตลอดเวลาค่ะ\n\n' +
+      'ขอบคุณค่ะ\nAdvance Sports Academy',
+    male:
+      'ยินดีต้อนรับสู่ ASA ครับ!\n' +
+      'ขอบคุณเป็นอย่างยิ่งที่สมัครเข้าร่วม ASA ครับ\n' +
+      'ที่ ASA เราใช้กลุ่ม Band สำหรับสมาชิกโดยเฉพาะ เพื่อจัดการตารางเรียน ตรวจสอบการเข้าเรียน และแจ้งข่าวสารจากทางอคาเดมีครับ\n' +
+      'รบกวนเข้าร่วมผ่านลิงก์ด้านล่างนี้ และตั้งค่าโปรไฟล์ Band ด้วยครับ\n\n' +
+      'คำขอในการตั้งค่าโปรไฟล์\n' +
+      '・ชื่อและรูปโปรไฟล์: กรุณาเปลี่ยนเป็นข้อมูลของบุตรหลานครับ\n' +
+      '・ชื่อรอง (Sub Name): กรุณากรอกชื่อผู้ปกครองครับ\n' +
+      '・กรณีมีพี่น้อง: กรุณาแนบชื่อและรูปภาพของบุตรหลานทุกคนที่เข้าร่วมคลาสครับ\n\n' +
+      'กลุ่ม Band แยกตามคลาสของบุตรหลาน\n' +
+      '・[Enjoy Class], [Rhythm Gymnastics Class]: https://band.us/n/aaab05z058D9Y\n' +
+      '・[Advance Class], [Enjoy Elite Class]: https://band.us/n/a6a7A3n3g0Ddk\n\n' +
+      'กลุ่มที่บุตรหลานทุกคนต้องเข้าร่วม\n' +
+      '・All Member Group: https://band.us/n/a3a0b0w3X42aA\n\n' +
+      'การติดต่อในอนาคตทั้งหมดจะดำเนินการผ่าน Band จึงขอความเข้าใจและความร่วมมือด้วยครับ\n' +
+      'หากมีข้อสงสัยใดๆ สามารถติดต่อสอบถามได้ตลอดเวลาครับ\n\n' +
+      'ขอบคุณครับ\nAdvance Sports Academy'
+  }
 };
 
 /* ============================================================
@@ -1045,8 +1087,10 @@ function handleEnrollFormSubmit_(e, lang) {
     Logger.log('入会案内は送信済みのためスキップ: ' + userId);
     return;
   }
-  const ok = pushMessage_(userId, SCENE4_WELCOME[lang]);
-  logRow_(userId, keyword, SCENE4_WELCOME[lang], ok, '');
+  // 自動送信には実在の話し手がいないので、タイ語は女性形を使う。
+  const text = resolveBody_(SCENE4_WELCOME, lang);
+  const ok = pushMessage_(userId, text);
+  logRow_(userId, keyword, text, ok, '');
 }
 
 /**
@@ -1180,6 +1224,33 @@ function sendScene2Manual() {
     SCENE2_AFTER_TRIAL_FORM[lang], '持ち物案内');
 }
 
+/**
+ * 送信するスタッフの性別を尋ねる。
+ *
+ * タイ語の ครับ / ค่ะ は聞き手ではなく**話し手**の性別を表す。
+ * 手で送るときは実在の話し手がいるので、その人に合わせる。
+ * 取り消しや入力違いなら null、性別が要らない言語なら空文字。
+ */
+function promptGender_(ui, table, lang) {
+  if (!needsGender_(table, lang)) return '';
+
+  const resp = ui.prompt(
+    '送信するご自身の性別を入力してください\n' +
+    '女性なら f（語尾は ค่ะ / นะคะ）、男性なら m（語尾は ครับ / นะครับ）'
+  );
+  if (resp.getSelectedButton() !== ui.Button.OK) return null;
+
+  const answer = resp.getResponseText().trim().toLowerCase();
+  if (answer === 'f' || answer === 'female' || answer === '女' || answer === '女性') {
+    return 'female';
+  }
+  if (answer === 'm' || answer === 'male' || answer === '男' || answer === '男性') {
+    return 'male';
+  }
+  ui.alert('性別は f（女性）または m（男性）で入力してください。');
+  return null;
+}
+
 /** シーン4：入会後のBand招待。 */
 function sendScene4Manual() {
   const ui = SpreadsheetApp.getUi();
@@ -1187,9 +1258,12 @@ function sendScene4Manual() {
   if (!userId) return;
   const lang = promptLang_(ui, SCENE4_WELCOME);
   if (!lang) return;
+  const gender = promptGender_(ui, SCENE4_WELCOME, lang);
+  if (gender === null) return;
 
-  sendManualAndLog_(ui, userId, 'scene4_welcome_' + lang,
-    SCENE4_WELCOME[lang], 'Band招待');
+  const keyword = 'scene4_welcome_' + lang + (gender ? '_' + gender : '');
+  sendManualAndLog_(ui, userId, keyword,
+    resolveBody_(SCENE4_WELCOME, lang, gender), 'Band招待');
 }
 
 function sendScene3Manual() {
@@ -1201,27 +1275,11 @@ function sendScene3Manual() {
   const lang = promptLang_(ui, SCENE3_AFTER_TRIAL_LESSON);
   if (!lang) return;
 
-  // タイ語は語尾が話し手の性別で変わるため、送信するスタッフの性別を尋ねる。
-  let gender = '';
-  if (scene3NeedsGender_(lang)) {
-    const genderResp = ui.prompt(
-      '送信するご自身の性別を入力してください\n' +
-      '女性なら f（語尾は ค่ะ / นะคะ）、男性なら m（語尾は ครับ / นะครับ）'
-    );
-    if (genderResp.getSelectedButton() !== ui.Button.OK) return;
-    const answer = genderResp.getResponseText().trim().toLowerCase();
-    if (answer === 'f' || answer === 'female' || answer === '女' || answer === '女性') {
-      gender = 'female';
-    } else if (answer === 'm' || answer === 'male' || answer === '男' || answer === '男性') {
-      gender = 'male';
-    } else {
-      ui.alert('性別は f（女性）または m（男性）で入力してください。');
-      return;
-    }
-  }
+  const gender = promptGender_(ui, SCENE3_AFTER_TRIAL_LESSON, lang);
+  if (gender === null) return;
 
   const forms = ENROLL_FORMS[lang];
-  const text = resolveScene3Body_(lang, gender)
+  const text = resolveBody_(SCENE3_AFTER_TRIAL_LESSON, lang, gender)
     .replace('{{TICKET_LINK}}', buildPrefilledFormLink_(forms.ticket.url, forms.ticket.entryId, userId))
     .replace('{{MONTHLY_LINK}}', buildPrefilledFormLink_(forms.monthly.url, forms.monthly.entryId, userId));
 
